@@ -1,0 +1,11 @@
+defmodule EsCqrsAnatomy.Shipment.Commands.CompleteShipment do
+  @moduledoc false
+  use EsCqrsAnatomy.BaseStruct
+
+  @derive Jason.Encoder
+  typedstruct enforce: true do
+    field(:id, String.t())
+  end
+
+  validates(:id, presence: true, uuid: true)
+end
