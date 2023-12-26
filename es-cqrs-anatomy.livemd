@@ -1,0 +1,80 @@
+<!-- livebook:{"app_settings":{"auto_shutdown_ms":3600000,"show_source":true,"slug":"es-cqrs-anatomy"}} -->
+
+# ES/CQRS Anatomy
+
+```elixir
+Mix.install([
+  {:kino_db, "~> 0.2.5"},
+  {:postgrex, "~> 0.17.4"}
+])
+```
+
+## Introduction
+
+### What's Event Sourcing?
+
+**Event sourcing** is like a historical timeline for your data. Instead of storing a snapshot of the current state, event sourcing keeps a record of every change that has happened to your data. This allows you to reconstruct the data's past state, track its evolution over time, and ensure data consistency across different replicas.
+
+Think of it as a medical record for your data. Just as a doctor can review a patient's medical history to diagnose an illness, you can use event sourcing to understand how your data has changed and identify any anomalies.
+
+This approach is especially useful for applications that need strong audit trails, complex state tracking, or flexible scalability. However, it also comes with higher storage requirements and computational complexity.
+
+<!-- livebook:{"break_markdown":true} -->
+
+<!-- Learn more at https://mermaid-js.github.io/mermaid -->
+
+```mermaid
+graph LR;
+  A(Order Created) -->B(Item 1 Added) -->C(Item 2 Added) --> D(Order Paid) --> E(Order Shipped);
+```
+
+<!-- livebook:{"break_markdown":true} -->
+
+### What's CQRS?
+
+CQRS (**Command Query Responsibility Segregation**) is like having two separate sets of instructions for your data: one for changing it (commands) and one for reading it (queries). This separation allows for specializing each set of instructions, making data manipulation and retrieval more efficient, especially for applications with high write or read loads.
+
+<!-- livebook:{"break_markdown":true} -->
+
+<!-- Learn more at https://mermaid-js.github.io/mermaid -->
+
+```mermaid
+graph LR;
+  C(Command) -->AGG([Aggregate]) -->E(Event) -->ES[(Event Store)];
+  PR(Projector) -->|read| ES;
+  Q(Query) -->PN([Projection]) --> RS[(Read Store)];
+  PR -->|write| RS
+
+  
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiXCJJT1wiIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+Kino.RPC.eval_string(node, ~S"\"IO\"", file: __ENV__.file)
+```
+
+<!-- livebook:{"attrs":"eyJkYXRhYmFzZSI6ImVzX2NxcnNfYW5hdG9teV9wcm9kIiwiaG9zdG5hbWUiOiJwb3N0Z3JlcyIsInBhc3N3b3JkIjoicG9zdGdyZXMiLCJwb3J0Ijo1NDMyLCJ0eXBlIjoicG9zdGdyZXMiLCJ1c2VfaXB2NiI6ZmFsc2UsInVzZV9zc2wiOmZhbHNlLCJ1c2VybmFtZSI6InBvc3RncmVzIiwidmFyaWFibGUiOiJjb25uIn0","chunks":null,"kind":"Elixir.KinoDB.ConnectionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+opts = [
+  hostname: "postgres",
+  port: 5432,
+  username: "postgres",
+  password: "postgres",
+  database: "es_cqrs_anatomy_prod"
+]
+
+{:ok, conn} = Kino.start_child({Postgrex, opts})
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6InNlbGVjdCAqIGZyb20gZXZlbnRzIGxpbWl0IDEwMCIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdCIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result = Postgrex.query!(conn, "select * from events limit 100", [])
+```
+
+<!-- livebook:{"offset":3580,"stamp":{"token":"XCP.2JVH5qdAdCPZlL64xwjDJ8mW06q6lGKeC2h96OEclj-Nsbt8P3F8tbJYtzmvtELW-VnLhLhAzTfwiv4BsjG5tsvioixKEPJycsQhFIy3z3v3","version":2}} -->
