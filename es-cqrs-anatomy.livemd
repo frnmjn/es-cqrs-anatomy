@@ -1,4 +1,4 @@
-<!-- livebook:{"app_settings":{"auto_shutdown_ms":3600000,"show_source":true,"slug":"es-cqrs-anatomy"}} -->
+<!-- livebook:{"app_settings":{"auto_shutdown_ms":3600000,"show_source":true,"slug":"es-cqrs-anatomy"},"file_entries":[{"name":"events.png","type":"attachment"}]} -->
 
 # ES/CQRS Anatomy
 
@@ -48,6 +48,19 @@ graph LR;
   
 ```
 
+<!-- livebook:{"break_markdown":true} -->
+
+### Event Storming
+
+Event Storming is a **collaborative workshop technique** for understanding and designing **complex business processes or software systems**. It involves a visual approach where participants **use sticky notes to represent events, commands, aggregates,** and other key elements on a large workspace. The goal is to foster communication, **shared understanding**, and **uncover insights** into the dynamics of the system or process being modeled. Event Storming is commonly used in agile development, domain-driven design, and other contexts where a shared understanding among team members is crucial.
+
+**The** picture that explains everything
+![Alt text](https://mrpicky.dev/wp-content/uploads/2021/12/DLES-Brandolini.png "a title")
+
+## Yet Another ERP
+
+![images](files:/data/files/events.png)
+
 <!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiXCJJT1wiIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
@@ -77,4 +90,4 @@ opts = [
 result = Postgrex.query!(conn, "select * from events limit 100", [])
 ```
 
-<!-- livebook:{"offset":3580,"stamp":{"token":"XCP.2JVH5qdAdCPZlL64xwjDJ8mW06q6lGKeC2h96OEclj-Nsbt8P3F8tbJYtzmvtELW-VnLhLhAzTfwiv4BsjG5tsvioixKEPJycsQhFIy3z3v3","version":2}} -->
+<!-- livebook:{"offset":4496,"stamp":{"token":"XCP.A2ZZ3zSnrBkqn3oEPGePfjRbesreJ05FvcPsHRHKPUvlNkA_S_Odg7tOj6HoxLXYrRNYlYo_H9FpAGSe1TlE5QFzVU3BYz3nTGCwTjZoKKhD","version":2}} -->
