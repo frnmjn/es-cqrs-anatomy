@@ -1,0 +1,1425 @@
+<!-- livebook:{"app_settings":{"auto_shutdown_ms":3600000,"show_source":true,"slug":"es-cqrs-anatomy"},"file_entries":[{"name":"eventstorming.png","type":"attachment"}]} -->
+
+# ES/CQRS's Anatomy
+
+```elixir
+Mix.install([
+  {:kino_db, "~> 0.2.13"},
+  {:postgrex, "~> 0.19.1"}
+])
+```
+
+## Introduction
+
+### What's Event Sourcing?
+
+Event sourcing is like a **historical timeline for your data**. Instead of storing a snapshot of the **current state**, event sourcing keeps a record of **every change** that has happened to your data. This allows you to reconstruct the data's past state and track its evolution over time.
+
+Think of it as a medical record for your data. Just as a doctor can review a patient's medical history to diagnose an illness, you can use event sourcing to **understand how your data has changed** and identify any anomalies.
+
+This approach is especially useful for applications that need strong **audit trails**, complex state tracking, or flexible scalability. However, it also comes with **higher storage requirements** and computational complexity.
+
+<!-- livebook:{"break_markdown":true} -->
+
+<!-- Learn more at https://mermaid-js.github.io/mermaid -->
+
+```mermaid
+graph LR;
+  A(Order Created) -->B(Item 1 Added) -->C(Item 2 Added) --> D(Order Paid) --> E(Order Shipped);
+```
+
+<!-- livebook:{"break_markdown":true} -->
+
+### What's CQRS?
+
+CQRS (**Command Query Responsibility Segregation**) is like having **two separate sets of instructions** for your data: one for changing it (commands) and one for reading it (queries). This separation allows for specializing each set of instructions, making data manipulation and retrieval more efficient, especially for applications with high write or read loads.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Let's put ALL TOGETHER
+
+<!-- livebook:{"break_markdown":true} -->
+
+<!-- Learn more at https://mermaid-js.github.io/mermaid -->
+
+```mermaid
+graph LR;
+  C(Command) -->|Invoked on| AGG([Aggregate]) -->|Generates|E(Event) -->|Stored to| ES[(Event Store)];
+  PR(Projector) -->|Read from| ES;
+  Q(Query) -->|Query to| PN([Projection]) -->|Retrive from| RS[(Read Store)];
+  PR -->|Write to| RS
+
+
+```
+
+<!-- livebook:{"break_markdown":true} -->
+
+A Command is routed to an Aggregate, that emit an Event. Then the event is stored into the Event Store.
+The Projector **subscribe** some events and build one or more **table** into the Read Store.
+The Projection **retrieve data** from Read Store based on a Query
+
+<!-- livebook:{"break_markdown":true} -->
+
+### What's Event Storming
+
+Event Storming is a **collaborative workshop technique** for understanding and designing **complex business processes or software systems**. It involves a visual approach where participants **use sticky notes to represent events, commands, aggregates,** and other key elements on a large workspace. The goal is to foster communication, **shared understanding**, and **uncover insights** into the dynamics of the system or process being modeled. Event Storming is commonly used in agile development, domain-driven design, and other contexts where a shared understanding among team members is crucial.
+
+**The** picture that explains everything
+![image](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/eventstorming.png)
+
+## Yet Another ERP
+
+We put all the Domain Experts, Developers, Product Owners ecc in the same room and start doing a big picture event storming.
+
+<!-- livebook:{"break_markdown":true} -->
+
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-events.png)
+
+<!-- livebook:{"break_markdown":true} -->
+
+Then at the end we have a **clear idea** of what the system should do (or at least we think so).
+
+<!-- livebook:{"break_markdown":true} -->
+
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-complete.png)
+
+## Play with Orders
+
+Let's create an Order invoking the relative command and take the aggregate id from the command response, for the next steps.
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhZ2dyZWdhdGVfdXVpZCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLk9yZGVySXRlbVxuXG4lQ3JlYXRlT3JkZXJ7XG4gIGlkOiBGYWtlci5VVUlELnY0KCksIFxuICBvcmRlcl9udW1iZXI6IEZha2VyLlN0cmluZy5iYXNlNjQoNSksIFxuICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICBpdGVtczogW1xuICAgICVPcmRlckl0ZW17XG4gICAgICBwcm9kdWN0X2lkOiBGYWtlci5VVUlELnY0KCksXG4gICAgICBxdWFudGl0eTogMSxcbiAgICAgIHVvbTogXCJLR1wiXG4gICAgfVxuICBdXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goaW5jbHVkZV9leGVjdXRpb25fcmVzdWx0OiB0cnVlKVxufD4gZWxlbSgxKVxufD4gTWFwLmdldCg6YWdncmVnYXRlX3V1aWQpIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+aggregate_uuid =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    alias EsCqrsAnatomy.Order.Commands.CreateOrder
+    alias EsCqrsAnatomy.Order.Commands.OrderItem
+
+    %CreateOrder{
+      id: Faker.UUID.v4(), 
+      order_number: Faker.String.base64(5), 
+      business_partner: Faker.Internet.email(),
+      items: [
+        %OrderItem{
+          product_id: Faker.UUID.v4(),
+          quantity: 1,
+          uom: "KG"
+        }
+      ]
+    } 
+    |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+    |> elem(1)
+    |> Map.get(:aggregate_uuid)
+    """,
+    file: __ENV__.file
+  )
+```
+
+Create a connection to the Event Store
+
+<!-- livebook:{"attrs":"eyJkYXRhYmFzZSI6ImV2ZW50X3N0b3JlIiwiaG9zdG5hbWUiOiJwb3N0Z3JlcyIsInBhc3N3b3JkIjoicG9zdGdyZXMiLCJwb3J0Ijo1NDMyLCJ0eXBlIjoicG9zdGdyZXMiLCJ1c2VfaXB2NiI6ZmFsc2UsInVzZV9zc2wiOmZhbHNlLCJ1c2VybmFtZSI6InBvc3RncmVzIiwidmFyaWFibGUiOiJjb25uIn0","chunks":null,"kind":"Elixir.KinoDB.ConnectionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+opts = [
+  hostname: "postgres",
+  port: 5432,
+  username: "postgres",
+  password: "postgres",
+  database: "event_store"
+]
+
+{:ok, conn} = Kino.start_child({Postgrex, opts})
+```
+
+Fetch all the event of the Aggregate.  
+Here we **cheat a bit** using the event payload to identify all the events related to our Aggregate.  
+We see the corect way to doi it soon
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZXZlbnRfaWQ6OnRleHQsXG4gIGV2ZW50X3R5cGUsXG4gIGRhdGFcbkZST00gZXZlbnRzIFxuV0hFUkUgZW5jb2RlKGRhdGEsICdlc2NhcGUnKTo6anNvbiAtPj4gJ2lkJyA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdF9ldmVudHMiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result_events =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      event_id::text,
+      event_type,
+      data
+    FROM events 
+    WHERE encode(data, 'escape')::json ->> 'id' = $1
+    """,
+    [aggregate_uuid]
+  )
+```
+
+Every Aggregate as it's own **Stream**
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgXG5XSEVSRSBzdHJlYW1fdXVpZCA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdCIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      stream_id,
+      stream_uuid,
+      stream_version 
+    FROM streams 
+    WHERE stream_uuid = $1
+    """,
+    [aggregate_uuid]
+  )
+```
+
+Let's invoke another command on the Aggregate
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5cbiVDb21wbGV0ZU9yZGVye1xuICBpZDogYWdncmVnYXRlX3V1aWRcbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaCgpIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.Order.Commands.CompleteOrder
+
+  %CompleteOrder{
+    id: aggregate_uuid
+  } 
+  |> EsCqrsAnatomy.App.dispatch()
+  """,
+  file: __ENV__.file
+)
+```
+
+Check the Stream now
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgXG5XSEVSRSBzdHJlYW1fdXVpZCA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InN0cmVhbSIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+stream =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      stream_id,
+      stream_uuid,
+      stream_version 
+    FROM streams 
+    WHERE stream_uuid = $1
+    """,
+    [aggregate_uuid]
+  )
+```
+
+Take the Stream Id of out Aggregate
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJzdHJlYW1faWQiLCJjb2RlIjoiJXtyb3dzOiBbW3N0cmVhbV9pZCB8IF9dXX0gPSBzdHJlYW1cbnN0cmVhbV9pZCIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+stream_id =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    %{rows: [[stream_id | _]]} = stream
+    stream_id
+    """,
+    file: __ENV__.file
+  )
+```
+
+Check the event i that Stream
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuICBldmVudF9pZDo6dGV4dCxcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdmVyc2lvblxuRlJPTSBzdHJlYW1fZXZlbnRzIHNlXG5XSEVSRSBzdHJlYW1faWQgPSB7e3N0cmVhbV9pZH19XG5PUkRFUiBCWSBzdHJlYW1fdmVyc2lvbiBBU0MiLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ0IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result4 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT
+      event_id::text,
+      stream_id,
+      stream_version
+    FROM stream_events se
+    WHERE stream_id = $1
+    ORDER BY stream_version ASC
+    """,
+    [stream_id]
+  )
+```
+
+Put **all together** to see all events for a give Aggregate
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZS5ldmVudF9pZDo6dGV4dCxcbiAgZXZlbnRfdHlwZSxcbiAgZGF0YVxuRlJPTSBldmVudHMgZVxuICBKT0lOIHN0cmVhbV9ldmVudHMgc2VcbiAgICBPTiBlLmV2ZW50X2lkID0gc2UuZXZlbnRfaWRcbiAgSk9JTiBzdHJlYW1zIHNcbiAgICBPTiBzLnN0cmVhbV9pZCA9IHNlLnN0cmVhbV9pZFxuV0hFUkUgcy5zdHJlYW1fdXVpZCA9IHt7YWdncmVnYXRlX3V1aWR9fVxuT1JERVIgQlkgc2Uuc3RyZWFtX3ZlcnNpb24gQVNDIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0MyIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result3 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      e.event_id::text,
+      event_type,
+      data
+    FROM events e
+      JOIN stream_events se
+        ON e.event_id = se.event_id
+      JOIN streams s
+        ON s.stream_id = se.stream_id
+    WHERE s.stream_uuid = $1
+    ORDER BY se.stream_version ASC
+    """,
+    [aggregate_uuid]
+  )
+```
+
+## The C stand for Command
+
+How a command is routed to the right Aggregate?  
+With the Router of course!
+
+We define which fields are the key of the Aggregate and which Command should be routed to which Aggregate
+
+**Note! We have removed CreateOrder intentionally. Let's see what happen...**
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDb21wbGV0ZU9yZGVyfVxuICBcbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG5cbiAgZGlzcGF0Y2goW0NvbXBsZXRlT3JkZXJdLCB0bzogT3JkZXIpXG4gIFxuZW5kIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Router do
+    use Commanded.Commands.Router
+
+    alias EsCqrsAnatomy.Order.Aggregate.Order
+
+    alias EsCqrsAnatomy.Order.Commands.{CompleteOrder}
+    
+    identify(Order, by: :id)
+
+    dispatch([CompleteOrder], to: Order)
+    
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLk9yZGVySXRlbVxuXG4lQ3JlYXRlT3JkZXJ7XG4gIGlkOiBGYWtlci5VVUlELnY0KCksIFxuICBvcmRlcl9udW1iZXI6IEZha2VyLlN0cmluZy5iYXNlNjQoNSksIFxuICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICBpdGVtczogW1xuICAgICVPcmRlckl0ZW17XG4gICAgICBwcm9kdWN0X2lkOiBGYWtlci5VVUlELnY0KCksXG4gICAgICBxdWFudGl0eTogMSxcbiAgICAgIHVvbTogXCJLR1wiXG4gICAgfVxuICBdXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goKSIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+command_result =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    alias EsCqrsAnatomy.Order.Commands.CreateOrder
+    alias EsCqrsAnatomy.Order.Commands.OrderItem
+
+    %CreateOrder{
+      id: Faker.UUID.v4(), 
+      order_number: Faker.String.base64(5), 
+      business_partner: Faker.Internet.email(),
+      items: [
+        %OrderItem{
+          product_id: Faker.UUID.v4(),
+          quantity: 1,
+          uom: "KG"
+        }
+      ]
+    } 
+    |> EsCqrsAnatomy.App.dispatch()
+    """,
+    file: __ENV__.file
+  )
+```
+
+Cool! The Command is not registered to any Aggregate
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Middlewares
+
+Middlewares are component used to perform the follow tasks:
+
+* Command Validation (static and dynamic)
+* Uniqueness Check
+* Command Enrichment
+
+<!-- livebook:{"break_markdown":true} -->
+
+**Note! This time we've added some Middlewares before to reach the Aggregate**
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5NaWRkbGV3YXJlLntWYWxpZGF0ZSwgRW5yaWNobWVudH1cbiAgYWxpYXMgQ29tbWFuZGVkLk1pZGRsZXdhcmUuVW5pcXVlbmVzc1xuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkFnZ3JlZ2F0ZS5PcmRlclxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cblxuICBtaWRkbGV3YXJlKEVucmljaG1lbnQpXG4gIG1pZGRsZXdhcmUoVmFsaWRhdGUpXG4gIG1pZGRsZXdhcmUoVW5pcXVlbmVzcylcblxuICBpZGVudGlmeShPcmRlciwgYnk6IDppZClcblxuICBkaXNwYXRjaChbQ3JlYXRlT3JkZXIsIENvbXBsZXRlT3JkZXJdLCB0bzogT3JkZXIpXG5lbmQiLCJjb29raWUiOiJzZWNyZXRjb29raWUiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAaG9zdDEuY29tIiwibm9kZV9zZWNyZXQiOiIiLCJ1c2VfY29va2llX3NlY3JldCI6ZmFsc2UsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Router do
+    use Commanded.Commands.Router
+
+    alias EsCqrsAnatomy.Middleware.{Validate, Enrichment}
+    alias Commanded.Middleware.Uniqueness
+    alias EsCqrsAnatomy.Order.Aggregate.Order
+    alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
+
+    middleware(Enrichment)
+    middleware(Validate)
+    middleware(Uniqueness)
+
+    identify(Order, by: :id)
+
+    dispatch([CreateOrder, CompleteOrder], to: Order)
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+#### Command Validation
+
+we can do check on mandatory fields and the relative format.
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ3JlYXRlT3JkZXIgZG9cbiAgdXNlIFR5cGVkU3RydWN0XG4gIHVzZSBWZXguU3RydWN0XG4gIHVzZSBTdHJ1Y3RBY2Nlc3NcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLk9yZGVySXRlbVxuXG4gIEBkZXJpdmUgSmFzb24uRW5jb2RlclxuICB0eXBlZHN0cnVjdCBlbmZvcmNlOiB0cnVlIGRvXG4gICAgZmllbGQoOmlkLCBTdHJpbmcudCgpKVxuICAgIGZpZWxkKDpvcmRlcl9udW1iZXIsIFN0cmluZy50KCkpXG4gICAgZmllbGQoOmJ1c2luZXNzX3BhcnRuZXIsIFN0cmluZy50KCkpXG4gICAgZmllbGQoOml0ZW1zLCBsaXN0KE9yZGVySXRlbSkpXG4gIGVuZFxuXG4gIHVzZSBFeENvbnN0cnVjdG9yXG5cbiAgdmFsaWRhdGVzKDppZCwgcHJlc2VuY2U6IHRydWUsIHV1aWQ6IHRydWUpXG4gIHZhbGlkYXRlcyg6b3JkZXJfbnVtYmVyLCBwcmVzZW5jZTogdHJ1ZSwgc3RyaW5nOiB0cnVlKVxuICB2YWxpZGF0ZXMoOmJ1c2luZXNzX3BhcnRuZXIsIHByZXNlbmNlOiB0cnVlLCBlbWFpbDogdHJ1ZSlcbiAgdmFsaWRhdGVzKDppdGVtcywgcHJlc2VuY2U6IHRydWUsIGxpc3Rfb2Zfc3RydWN0czogdHJ1ZSlcbmVuZFxuXG5kZWZtb2R1bGUgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5PcmRlckl0ZW0gZG9cbiAgdXNlIFR5cGVkU3RydWN0XG4gIHVzZSBWZXguU3RydWN0XG4gIHVzZSBTdHJ1Y3RBY2Nlc3NcblxuICBAZGVyaXZlIEphc29uLkVuY29kZXJcbiAgdHlwZWRzdHJ1Y3QgZW5mb3JjZTogdHJ1ZSBkb1xuICAgIGZpZWxkKDpwcm9kdWN0X2lkLCBTdHJpbmcudCgpKVxuICAgIGZpZWxkKDpxdWFudGl0eSwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6dW9tLCBTdHJpbmcudCgpKVxuICBlbmRcblxuICB1c2UgRXhDb25zdHJ1Y3RvclxuXG4gIHZhbGlkYXRlcyg6cHJvZHVjdF9pZCwgcHJlc2VuY2U6IHRydWUsIHV1aWQ6IHRydWUpXG4gIHZhbGlkYXRlcyg6cXVhbnRpdHksIHByZXNlbmNlOiB0cnVlLCBudW1iZXI6IFtncmVhdGVyX3RoYW46IDBdKVxuICB2YWxpZGF0ZXMoOnVvbSwgcHJlc2VuY2U6IHRydWUsIGluY2x1c2lvbjogW1wiS0dcIiwgXCJNVFwiXSlcbmVuZCIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Order.Commands.CreateOrder do
+    use TypedStruct
+    use Vex.Struct
+    use StructAccess
+
+    alias EsCqrsAnatomy.Order.Commands.OrderItem
+
+    @derive Jason.Encoder
+    typedstruct enforce: true do
+      field(:id, String.t())
+      field(:order_number, String.t())
+      field(:business_partner, String.t())
+      field(:items, list(OrderItem))
+    end
+
+    use ExConstructor
+
+    validates(:id, presence: true, uuid: true)
+    validates(:order_number, presence: true, string: true)
+    validates(:business_partner, presence: true, email: true)
+    validates(:items, presence: true, list_of_structs: true)
+  end
+
+  defmodule EsCqrsAnatomy.Order.Commands.OrderItem do
+    use TypedStruct
+    use Vex.Struct
+    use StructAccess
+
+    @derive Jason.Encoder
+    typedstruct enforce: true do
+      field(:product_id, String.t())
+      field(:quantity, String.t())
+      field(:uom, String.t())
+    end
+
+    use ExConstructor
+
+    validates(:product_id, presence: true, uuid: true)
+    validates(:quantity, presence: true, number: [greater_than: 0])
+    validates(:uom, presence: true, inclusion: ["KG", "MT"])
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+We can validate standard format like String, Number ecc or create custom validator. In this example we have two custom validator for UUID and Email
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuVmFsaWRhdG9yLkVtYWlsIGRvXG4gIHVzZSBWZXguVmFsaWRhdG9yXG5cbiAgZGVmIHZhbGlkYXRlKHZhbHVlLCBfb3B0aW9ucykgd2hlbiBpc19iaW5hcnkodmFsdWUpIGRvXG4gICAgaWYgU3RyaW5nLm1hdGNoPyh2YWx1ZSwgcmVnZXhwKCkpIGRvXG4gICAgICA6b2tcbiAgICBlbHNlXG4gICAgICB7OmVycm9yLCBcIm11c3QgYmUgYSB2YWxpZCBlbWFpbFwifVxuICAgIGVuZFxuICBlbmRcblxuICBkZWYgdmFsaWRhdGUoXywgX29wdGlvbnMpLCBkbzogezplcnJvciwgXCJtdXN0IGJlIGEgdmFsaWQgZW1haWxcIn1cblxuICBkZWZwIHJlZ2V4cCgpLFxuICAgIGRvOiB+ci9eW19BLVphLXowLTktXFwrXSsoXFwuW19BLVphLXowLTktXSspKkBbQS1aYS16MC05LV0rKFxcLltBLVphLXowLTldKykqKFxcLltBLVphLXpdezIsfSkkL1xuZW5kIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Validator.Email do
+    use Vex.Validator
+
+    def validate(value, _options) when is_binary(value) do
+      if String.match?(value, regexp()) do
+        :ok
+      else
+        {:error, "must be a valid email"}
+      end
+    end
+
+    def validate(_, _options), do: {:error, "must be a valid email"}
+
+    defp regexp(),
+      do: ~r/^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$/
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5DcmVhdGVPcmRlclxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5PcmRlckl0ZW1cblxuJUNyZWF0ZU9yZGVye1xuICBpZDogRmFrZXIuVVVJRC52NCgpLCBcbiAgb3JkZXJfbnVtYmVyOiAxMjM0NSwgXG4gIGJ1c2luZXNzX3BhcnRuZXI6IFwiaV93YW5uYV9iZV9hbl9lbWFpbFwiLFxuICBpdGVtczogW1xuICAgICVPcmRlckl0ZW17XG4gICAgICBwcm9kdWN0X2lkOiBcIlBlblwiLFxuICAgICAgcXVhbnRpdHk6IDAsXG4gICAgICB1b206IFwiTFRcIlxuICAgIH1cbiAgXVxufSBcbnw+IEVzQ3Fyc0FuYXRvbXkuQXBwLmRpc3BhdGNoKCkiLCJjb29raWUiOiJzZWNyZXRjb29raWUiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAaG9zdDEuY29tIiwibm9kZV9zZWNyZXQiOiIiLCJ1c2VfY29va2llX3NlY3JldCI6ZmFsc2UsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.Order.Commands.CreateOrder
+  alias EsCqrsAnatomy.Order.Commands.OrderItem
+
+  %CreateOrder{
+    id: Faker.UUID.v4(), 
+    order_number: 12345, 
+    business_partner: "i_wanna_be_an_email",
+    items: [
+      %OrderItem{
+        product_id: "Pen",
+        quantity: 0,
+        uom: "LT"
+      }
+    ]
+  } 
+  |> EsCqrsAnatomy.App.dispatch()
+  """,
+  file: __ENV__.file
+)
+```
+
+#### Uniqueness Check
+
+The order **id** is what it's called **technical key**. What identify an order from a business prospective (**business key**), it's the **order number**.  
+So we must avoid to have 2 orders with the same order number.
+
+How can we handle this cross aggregates rule?
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Qcm9qZWN0aW9ucy5PcmRlclxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5DcmVhdGVPcmRlclxuXG5kZWZpbXBsIENvbW1hbmRlZC5NaWRkbGV3YXJlLlVuaXF1ZW5lc3MuVW5pcXVlRmllbGRzLFxuICBmb3I6IEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ3JlYXRlT3JkZXIgZG9cbiAgZGVmIHVuaXF1ZSglQ3JlYXRlT3JkZXJ7b3JkZXJfbnVtYmVyOiBvcmRlcl9udW1iZXJ9KSxcbiAgICBkbzogW1xuICAgICAgezpvcmRlcl9udW1iZXIsIFwiYWxyZWFkeSBleGlzdFwiLCBvcmRlcl9udW1iZXIsXG4gICAgICAgaWdub3JlX2Nhc2U6IGZhbHNlLCBpc191bmlxdWU6ICZvcmRlcl9udW1iZXJfaXNfdW5pcXVlPy80LCBvcmRlcl9udW1iZXI6IG9yZGVyX251bWJlcn1cbiAgICBdXG5cbiAgZGVmIG9yZGVyX251bWJlcl9pc191bmlxdWU/KF9maWVsZCwgdmFsdWUsIF9vd25lciwgX29wdHMpLFxuICAgIGRvOiBPcmRlci5vcmRlcl9udW1iZXJfaXNfdW5pcXVlPyh2YWx1ZSlcbmVuZCIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.Order.Projections.Order
+  alias EsCqrsAnatomy.Order.Commands.CreateOrder
+
+  defimpl Commanded.Middleware.Uniqueness.UniqueFields,
+    for: EsCqrsAnatomy.Order.Commands.CreateOrder do
+    def unique(%CreateOrder{order_number: order_number}),
+      do: [
+        {:order_number, "already exist", order_number,
+         ignore_case: false, is_unique: &order_number_is_unique?/4, order_number: order_number}
+      ]
+
+    def order_number_is_unique?(_field, value, _owner, _opts),
+      do: Order.order_number_is_unique?(value)
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+The first Command that arrive, check if the order number already exist into the **Projection**. If it's available, it **store the value in a cache to keep locked the value** for a give time. In this way another Command, find the order number into the cache and **the command is rejected**
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhbHJlYWR5X2V4aXN0aW5nX29yZGVyX251bWJlciIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLk9yZGVySXRlbVxuXG5hbHJlYWR5X2V4aXN0aW5nX29yZGVyX251bWJlciA9IE9yZGVyLmZpcnN0X29yZGVyX251bWJlcigpIHw+IExpc3QuZmlyc3QoKVxuXG4lQ3JlYXRlT3JkZXJ7XG4gIGlkOiBGYWtlci5VVUlELnY0KCksIFxuICBvcmRlcl9udW1iZXI6IGFscmVhZHlfZXhpc3Rpbmdfb3JkZXJfbnVtYmVyLCBcbiAgYnVzaW5lc3NfcGFydG5lcjogRmFrZXIuSW50ZXJuZXQuZW1haWwoKSxcbiAgaXRlbXM6IFtcbiAgICAlT3JkZXJJdGVte1xuICAgICAgcHJvZHVjdF9pZDogRmFrZXIuVVVJRC52NCgpLFxuICAgICAgcXVhbnRpdHk6IDEsXG4gICAgICB1b206IFwiS0dcIlxuICAgIH1cbiAgXVxufSBcbnw+IEVzQ3Fyc0FuYXRvbXkuQXBwLmRpc3BhdGNoKCkiLCJjb29raWUiOiJzZWNyZXRjb29raWUiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAaG9zdDEuY29tIiwibm9kZV9zZWNyZXQiOiIiLCJ1c2VfY29va2llX3NlY3JldCI6ZmFsc2UsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+already_existing_order_number =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    alias EsCqrsAnatomy.Order.Projections.Order
+    alias EsCqrsAnatomy.Order.Commands.CreateOrder
+    alias EsCqrsAnatomy.Order.Commands.OrderItem
+
+    already_existing_order_number = Order.first_order_number() |> List.first()
+
+    %CreateOrder{
+      id: Faker.UUID.v4(), 
+      order_number: already_existing_order_number, 
+      business_partner: Faker.Internet.email(),
+      items: [
+        %OrderItem{
+          product_id: Faker.UUID.v4(),
+          quantity: 1,
+          uom: "KG"
+        }
+      ]
+    } 
+    |> EsCqrsAnatomy.App.dispatch()
+    """,
+    file: __ENV__.file
+  )
+```
+
+#### Command Enrichment
+
+<!-- livebook:{"break_markdown":true} -->
+
+Let's try to insert a contraints that don't allow to sold **blocked product**
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ29tcGxldGVPcmRlciBkb1xuICB1c2UgVHlwZWRTdHJ1Y3RcbiAgdXNlIFZleC5TdHJ1Y3RcblxuICBAZGVyaXZlIEphc29uLkVuY29kZXJcbiAgdHlwZWRzdHJ1Y3QgZW5mb3JjZTogdHJ1ZSBkb1xuICAgIGZpZWxkKDppZCwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6YmxvY2tlZF9wcm9kdWN0X2lkcywgbGlzdChTdHJpbmcudCgpKSwgZW5mb3JjZTogZmFsc2UpXG4gIGVuZFxuXG4gIHZhbGlkYXRlcyg6aWQsIHByZXNlbmNlOiB0cnVlLCB1dWlkOiB0cnVlKVxuZW5kXG5cblxuYWxpYXMgRXNDcXJzQW5hdG9teS5NaWRkbGV3YXJlLkVucmljaG1lbnQuRW5yaWNobWVudFByb3RvY29sXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNvbXBsZXRlT3JkZXJcbmFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29uc3RhbnRzXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVySXRlbVxuXG5kZWZpbXBsIEVucmljaG1lbnRQcm90b2NvbCwgZm9yOiBDb21wbGV0ZU9yZGVyIGRvXG4gIFxuICBkZWYgZW5yaWNoKCVDb21wbGV0ZU9yZGVye30gPSBjb21tYW5kKSBkb1xuICAgICVDb21wbGV0ZU9yZGVye2lkOiBpZH0gPSBjb21tYW5kXG5cbiAgICBwcm9kdWN0c19pbl9vcmRlciA9IE9yZGVySXRlbS5wcm9kdWN0c19pbl9vcmRlcihpZClcblxuICAgIGNvbW1hbmQgPSAlQ29tcGxldGVPcmRlcntcbiAgICAgIGNvbW1hbmRcbiAgICAgIHwgYmxvY2tlZF9wcm9kdWN0X2lkczogbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpXG4gICAgfVxuXG4gICAgezpvaywgY29tbWFuZH1cbiAgZW5kXG5cbiAgZGVmcCBsb29rdXBfZXh0ZXJuYWxfZGF0YShwcm9kdWN0c19pbl9vcmRlcikgZG9cbiAgICBpZiBFbnVtLm1lbWJlcj8ocHJvZHVjdHNfaW5fb3JkZXIsIENvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKSkgZG9cbiAgICAgIFtDb25zdGFudHMuYmxvY2tlZF9wcm9kdWN0X2lkKCldXG4gICAgZWxzZVxuICAgICAgW11cbiAgICBlbmRcbiAgZW5kXG5lbmRcblxuIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Order.Commands.CompleteOrder do
+    use TypedStruct
+    use Vex.Struct
+
+    @derive Jason.Encoder
+    typedstruct enforce: true do
+      field(:id, String.t())
+      field(:blocked_product_ids, list(String.t()), enforce: false)
+    end
+
+    validates(:id, presence: true, uuid: true)
+  end
+
+
+  alias EsCqrsAnatomy.Middleware.Enrichment.EnrichmentProtocol
+  alias EsCqrsAnatomy.Order.Commands.CompleteOrder
+  alias EsCqrsAnatomy.Order.Constants
+  alias EsCqrsAnatomy.Order.Projections.OrderItem
+
+  defimpl EnrichmentProtocol, for: CompleteOrder do
+    
+    def enrich(%CompleteOrder{} = command) do
+      %CompleteOrder{id: id} = command
+
+      products_in_order = OrderItem.products_in_order(id)
+
+      command = %CompleteOrder{
+        command
+        | blocked_product_ids: lookup_external_data(products_in_order)
+      }
+
+      {:ok, command}
+    end
+
+    defp lookup_external_data(products_in_order) do
+      if Enum.member?(products_in_order, Constants.blocked_product_id()) do
+        [Constants.blocked_product_id()]
+      else
+        []
+      end
+    end
+  end
+
+
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJvcmRlcl9pZF90b19ibG9jayIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlcn1cbmFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuT3JkZXJJdGVtXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbnN0YW50c1xuXG5vcmRlcl9pZF90b19ibG9jayA9IFxuICAlQ3JlYXRlT3JkZXJ7XG4gICAgaWQ6IEZha2VyLlVVSUQudjQoKSwgXG4gICAgb3JkZXJfbnVtYmVyOiBGYWtlci5TdHJpbmcuYmFzZTY0KDUpLCBcbiAgICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICAgIGl0ZW1zOiBbXG4gICAgICAlT3JkZXJJdGVte1xuICAgICAgICBwcm9kdWN0X2lkOiBDb25zdGFudHMuYmxvY2tlZF9wcm9kdWN0X2lkKCksXG4gICAgICAgIHF1YW50aXR5OiAxLFxuICAgICAgICB1b206IFwiS0dcIlxuICAgICAgfVxuICAgIF1cbiAgfSBcbiAgfD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goaW5jbHVkZV9leGVjdXRpb25fcmVzdWx0OiB0cnVlKVxuICB8PiBlbGVtKDEpXG4gIHw+IE1hcC5nZXQoOmFnZ3JlZ2F0ZV91dWlkKVxuIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+order_id_to_block =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    alias EsCqrsAnatomy.Order.Commands.{CreateOrder}
+    alias EsCqrsAnatomy.Order.Commands.OrderItem
+    alias EsCqrsAnatomy.Order.Constants
+
+    order_id_to_block = 
+      %CreateOrder{
+        id: Faker.UUID.v4(), 
+        order_number: Faker.String.base64(5), 
+        business_partner: Faker.Internet.email(),
+        items: [
+          %OrderItem{
+            product_id: Constants.blocked_product_id(),
+            quantity: 1,
+            uom: "KG"
+          }
+        ]
+      } 
+      |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+      |> elem(1)
+      |> Map.get(:aggregate_uuid)
+
+    """,
+    file: __ENV__.file
+  )
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy57Q29tcGxldGVPcmRlcn1cblxuJUNvbXBsZXRlT3JkZXJ7XG4gIGlkOiBvcmRlcl9pZF90b19ibG9ja1xufSBcbnw+IEVzQ3Fyc0FuYXRvbXkuQXBwLmRpc3BhdGNoKCkiLCJjb29raWUiOiJzZWNyZXRjb29raWUiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAaG9zdDEuY29tIiwibm9kZV9zZWNyZXQiOiIiLCJ1c2VfY29va2llX3NlY3JldCI6ZmFsc2UsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.Order.Commands.{CompleteOrder}
+
+  %CompleteOrder{
+    id: order_id_to_block
+  } 
+  |> EsCqrsAnatomy.App.dispatch()
+  """,
+  file: __ENV__.file
+)
+```
+
+## Finally the Aggregate
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyIGRvXG4gIHVzZSBUeXBlZFN0cnVjdFxuXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyLCBEZWxldGVPcmRlcn1cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5FdmVudHMue09yZGVyQ3JlYXRlZCwgT3JkZXJDb21wbGV0ZWQsIE9yZGVyRGVsZXRlZH1cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJTdGF0dXNcblxuICBAZGVyaXZlIEphc29uLkVuY29kZXJcbiAgdHlwZWRzdHJ1Y3QgZW5mb3JjZTogdHJ1ZSBkb1xuICAgIGZpZWxkKDppZCwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6c3RhdHVzLCBTdHJpbmcudCgpKVxuICBlbmRcblxuICBkZWYgZXhlY3V0ZSglX19NT0RVTEVfX3tpZDogbmlsfSwgJUNyZWF0ZU9yZGVye30gPSBjb21tYW5kKSBkb1xuICAgICVPcmRlckNyZWF0ZWR7XG4gICAgICBpZDogY29tbWFuZC5pZCxcbiAgICAgIG9yZGVyX251bWJlcjogY29tbWFuZC5vcmRlcl9udW1iZXIsXG4gICAgICBidXNpbmVzc19wYXJ0bmVyOiBjb21tYW5kLmJ1c2luZXNzX3BhcnRuZXIsXG4gICAgICBpdGVtczogY29tbWFuZC5pdGVtc1xuICAgIH1cbiAgZW5kXG5cbiAgZGVmIGV4ZWN1dGUoJV9fTU9EVUxFX197fSwgJUNyZWF0ZU9yZGVye30pLCBkbzogezplcnJvciwgXCJPcmRlciBhbHJlYWR5IGNyZWF0ZWRcIn1cblxuICBkZWYgZXhlY3V0ZSglX19NT0RVTEVfX3tzdGF0dXM6IFwiQ09NUExFVEVEXCJ9LCAlQ29tcGxldGVPcmRlcnt9KSxcbiAgICBkbzogezplcnJvciwgXCJPcmRlciBhbHJlYWR5IGNvbXBsZXRlZFwifVxuXG4gIGRlZiBleGVjdXRlKCVfX01PRFVMRV9fe30sICVDb21wbGV0ZU9yZGVye2Jsb2NrZWRfcHJvZHVjdF9pZHM6IGJsb2NrZWRfcHJvZHVjdF9pZHN9KVxuICAgICAgd2hlbiBsZW5ndGgoYmxvY2tlZF9wcm9kdWN0X2lkcykgPiAwIGRvXG4gICAgezplcnJvciwgXCJPcmRlciBjb250YWlucyBibG9ja2VkIHByb2R1Y3RzOiAje0lPLmluc3BlY3QoYmxvY2tlZF9wcm9kdWN0X2lkcyl9XCJ9XG4gIGVuZFxuXG4gIGRlZiBleGVjdXRlKCVfX01PRFVMRV9fe2lkOiBpZH0sICVDb21wbGV0ZU9yZGVye30pLCBkbzogJU9yZGVyQ29tcGxldGVke2lkOiBpZH1cblxuICBkZWYgZXhlY3V0ZSglX19NT0RVTEVfX3tpZDogaWR9LCAlRGVsZXRlT3JkZXJ7fSksIGRvOiAlT3JkZXJEZWxldGVke2lkOiBpZH1cblxuICBkZWYgYXBwbHkoJV9fTU9EVUxFX197fSA9IG9yZGVyLCAlT3JkZXJDcmVhdGVke30gPSBldmVudCkgZG9cbiAgICAlX19NT0RVTEVfX3tcbiAgICAgIG9yZGVyXG4gICAgICB8IGlkOiBldmVudC5pZCxcbiAgICAgICAgc3RhdHVzOiBPcmRlclN0YXR1cy5vcGVuKClcbiAgICB9XG4gIGVuZFxuXG4gIGRlZiBhcHBseSglX19NT0RVTEVfX3t9ID0gb3JkZXIsICVPcmRlckNvbXBsZXRlZHt9ID0gZXZlbnQpIGRvXG4gICAgJV9fTU9EVUxFX197XG4gICAgICBvcmRlclxuICAgICAgfCBpZDogZXZlbnQuaWQsXG4gICAgICAgIHN0YXR1czogT3JkZXJTdGF0dXMuY29tcGxldGVkKClcbiAgICB9XG4gIGVuZFxuXG4gIGRlZiBhcHBseSglX19NT0RVTEVfX3t9ID0gb3JkZXIsIF8pLCBkbzogb3JkZXJcbmVuZFxuIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Order.Aggregate.Order do
+    use TypedStruct
+
+    alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder, DeleteOrder}
+    alias EsCqrsAnatomy.Order.Events.{OrderCreated, OrderCompleted, OrderDeleted}
+    alias EsCqrsAnatomy.Order.Aggregate.OrderStatus
+
+    @derive Jason.Encoder
+    typedstruct enforce: true do
+      field(:id, String.t())
+      field(:status, String.t())
+    end
+
+    def execute(%__MODULE__{id: nil}, %CreateOrder{} = command) do
+      %OrderCreated{
+        id: command.id,
+        order_number: command.order_number,
+        business_partner: command.business_partner,
+        items: command.items
+      }
+    end
+
+    def execute(%__MODULE__{}, %CreateOrder{}), do: {:error, "Order already created"}
+
+    def execute(%__MODULE__{status: "COMPLETED"}, %CompleteOrder{}),
+      do: {:error, "Order already completed"}
+
+    def execute(%__MODULE__{}, %CompleteOrder{blocked_product_ids: blocked_product_ids})
+        when length(blocked_product_ids) > 0 do
+      {:error, "Order contains blocked products: #{IO.inspect(blocked_product_ids)}"}
+    end
+
+    def execute(%__MODULE__{id: id}, %CompleteOrder{}), do: %OrderCompleted{id: id}
+
+    def execute(%__MODULE__{id: id}, %DeleteOrder{}), do: %OrderDeleted{id: id}
+
+    def apply(%__MODULE__{} = order, %OrderCreated{} = event) do
+      %__MODULE__{
+        order
+        | id: event.id,
+          status: OrderStatus.open()
+      }
+    end
+
+    def apply(%__MODULE__{} = order, %OrderCompleted{} = event) do
+      %__MODULE__{
+        order
+        | id: event.id,
+          status: OrderStatus.completed()
+      }
+    end
+
+    def apply(%__MODULE__{} = order, _), do: order
+  end
+
+  """,
+  file: __ENV__.file
+)
+```
+
+## Event Handlers
+
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-policy.png)
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5NaWRkbGV3YXJlLntWYWxpZGF0ZSwgRW5yaWNobWVudH1cbiAgYWxpYXMgQ29tbWFuZGVkLk1pZGRsZXdhcmUuVW5pcXVlbmVzc1xuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkFnZ3JlZ2F0ZS5PcmRlclxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TaGlwbWVudC5BZ2dyZWdhdGUuU2hpcG1lbnRcbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TaGlwbWVudC5Db21tYW5kcy57Q3JlYXRlU2hpcG1lbnQsIENvbXBsZXRlU2hpcG1lbnR9XG5cbiAgbWlkZGxld2FyZShFbnJpY2htZW50KVxuICBtaWRkbGV3YXJlKFZhbGlkYXRlKVxuICBtaWRkbGV3YXJlKFVuaXF1ZW5lc3MpXG5cbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG4gIGlkZW50aWZ5KFNoaXBtZW50LCBieTogOmlkKVxuXG4gIGRpc3BhdGNoKFtDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcl0sIHRvOiBPcmRlcilcbiAgZGlzcGF0Y2goW0NyZWF0ZVNoaXBtZW50LCBDb21wbGV0ZVNoaXBtZW50XSwgdG86IFNoaXBtZW50KVxuZW5kIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Router do
+    use Commanded.Commands.Router
+
+    alias EsCqrsAnatomy.Middleware.{Validate, Enrichment}
+    alias Commanded.Middleware.Uniqueness
+    alias EsCqrsAnatomy.Order.Aggregate.Order
+    alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
+    alias EsCqrsAnatomy.Shipment.Aggregate.Shipment
+    alias EsCqrsAnatomy.Shipment.Commands.{CreateShipment, CompleteShipment}
+
+    middleware(Enrichment)
+    middleware(Validate)
+    middleware(Uniqueness)
+
+    identify(Order, by: :id)
+    identify(Shipment, by: :id)
+
+    dispatch([CreateOrder, CompleteOrder], to: Order)
+    dispatch([CreateShipment, CompleteShipment], to: Shipment)
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuU2hpcG1lbnQuUG9saWNpZXMuU2hpcG1lbnQgZG9cbiAgdXNlIENvbW1hbmRlZC5FdmVudC5IYW5kbGVyLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICBuYW1lOiBcInNoaXBtZW50XCIsXG4gICAgc3RhcnRfZnJvbTogOmN1cnJlbnRcbiAgICBcbiAgdXNlIEVzQ3Fyc0FuYXRvbXkuQmFzZS5FdmVudEhhbmRsZXJcbiAgXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuRXZlbnRzLk9yZGVyQ29tcGxldGVkXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuU2hpcG1lbnQuQ29tbWFuZHMuQ3JlYXRlU2hpcG1lbnRcblxuICBkZWYgaGFuZGxlKCVPcmRlckNvbXBsZXRlZHtpZDogaWR9LCAle1xuICAgICAgICBldmVudF9pZDogY2F1c2F0aW9uX2lkLFxuICAgICAgICBjb3JyZWxhdGlvbl9pZDogY29ycmVsYXRpb25faWRcbiAgICAgIH0pIGRvXG4gICAgJUNyZWF0ZVNoaXBtZW50e1xuICAgICAgaWQ6IFVVSUQudXVpZDQoKSxcbiAgICAgIG9yZGVyX2lkOiBpZFxuICAgIH1cbiAgICB8PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaChjYXVzYXRpb25faWQ6IGNhdXNhdGlvbl9pZCwgY29ycmVsYXRpb25faWQ6IGNvcnJlbGF0aW9uX2lkKVxuICBlbmRcblxuZW5kIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Shipment.Policies.Shipment do
+    use Commanded.Event.Handler,
+      application: EsCqrsAnatomy.App,
+      name: "shipment",
+      start_from: :current
+      
+    use EsCqrsAnatomy.Base.EventHandler
+    
+    alias EsCqrsAnatomy.Order.Events.OrderCompleted
+    alias EsCqrsAnatomy.Shipment.Commands.CreateShipment
+
+    def handle(%OrderCompleted{id: id}, %{
+          event_id: causation_id,
+          correlation_id: correlation_id
+        }) do
+      %CreateShipment{
+        id: UUID.uuid4(),
+        order_id: id
+      }
+      |> EsCqrsAnatomy.App.dispatch(causation_id: causation_id, correlation_id: correlation_id)
+    end
+
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuRXZlbnRIYW5kbGVyU3VwZXJ2aXNvciBkb1xuICB1c2UgU3VwZXJ2aXNvclxuXG4gIGRlZiBzdGFydF9saW5rKF9hcmdzKSBkb1xuICAgIFN1cGVydmlzb3Iuc3RhcnRfbGluayhfX01PRFVMRV9fLCBbXSwgbmFtZTogX19NT0RVTEVfXylcbiAgZW5kXG5cbiAgZGVmIGluaXQoX2FyZ3MpIGRvXG4gICAgU3VwZXJ2aXNvci5pbml0KFxuICAgICAgW1xuICAgICAgICBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3RvcnMuT3JkZXJzLFxuICAgICAgICBFc0NxcnNBbmF0b215LlNoaXBtZW50LlBvbGljaWVzLlNoaXBtZW50XG4gICAgICBdLFxuICAgICAgc3RyYXRlZ3k6IDpvbmVfZm9yX29uZVxuICAgIClcbiAgZW5kXG5lbmRcbiIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.EventHandlerSupervisor do
+    use Supervisor
+
+    def start_link(_args) do
+      Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+    end
+
+    def init(_args) do
+      Supervisor.init(
+        [
+          EsCqrsAnatomy.Order.Projectors.Orders,
+          EsCqrsAnatomy.Shipment.Policies.Shipment
+        ],
+        strategy: :one_for_one
+      )
+    end
+  end
+
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiUHJvY2Vzcy53aGVyZWlzKEVzQ3Fyc0FuYXRvbXkuRXZlbnRIYW5kbGVyU3VwZXJ2aXNvcikgfD4gUHJvY2Vzcy5leGl0KDpraWxsKSIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"Process.whereis(EsCqrsAnatomy.EventHandlerSupervisor) |> Process.exit(:kill)",
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJvcmRlcl9pZCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cbmFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuT3JkZXJJdGVtXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbnN0YW50c1xuXG5vcmRlcl9pZCA9IFxuICAlQ3JlYXRlT3JkZXJ7XG4gICAgaWQ6IEZha2VyLlVVSUQudjQoKSwgXG4gICAgb3JkZXJfbnVtYmVyOiBGYWtlci5TdHJpbmcuYmFzZTY0KDUpLCBcbiAgICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICAgIGl0ZW1zOiBbXG4gICAgICAlT3JkZXJJdGVte1xuICAgICAgICBwcm9kdWN0X2lkOiBGYWtlci5VVUlELnY0KCksXG4gICAgICAgIHF1YW50aXR5OiAxLFxuICAgICAgICB1b206IFwiS0dcIlxuICAgICAgfVxuICAgIF1cbiAgfSBcbiAgfD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goaW5jbHVkZV9leGVjdXRpb25fcmVzdWx0OiB0cnVlKVxuICB8PiBlbGVtKDEpXG4gIHw+IE1hcC5nZXQoOmFnZ3JlZ2F0ZV91dWlkKVxuXG4lQ29tcGxldGVPcmRlcntcbiAgaWQ6IG9yZGVyX2lkXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goKVxuXG5vcmRlcl9pZCIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+order_id =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
+    alias EsCqrsAnatomy.Order.Commands.OrderItem
+    alias EsCqrsAnatomy.Order.Constants
+
+    order_id = 
+      %CreateOrder{
+        id: Faker.UUID.v4(), 
+        order_number: Faker.String.base64(5), 
+        business_partner: Faker.Internet.email(),
+        items: [
+          %OrderItem{
+            product_id: Faker.UUID.v4(),
+            quantity: 1,
+            uom: "KG"
+          }
+        ]
+      } 
+      |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+      |> elem(1)
+      |> Map.get(:aggregate_uuid)
+
+    %CompleteOrder{
+      id: order_id
+    } 
+    |> EsCqrsAnatomy.App.dispatch()
+
+    order_id
+    """,
+    file: __ENV__.file
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZXZlbnRfaWQ6OnRleHQsXG4gIGV2ZW50X3R5cGUsXG4gIGRhdGFcbkZST00gZXZlbnRzIFxuV0hFUkUgZXZlbnRfdHlwZSA9ICdTaGlwbWVudC5TaGlwbWVudENyZWF0ZWQnIFxuQU5EIGVuY29kZShkYXRhLCAnZXNjYXBlJyk6Ompzb24gLT4+ICdvcmRlcl9pZCcgPSB7e29yZGVyX2lkfX0iLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ1IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result5 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      event_id::text,
+      event_type,
+      data
+    FROM events 
+    WHERE event_type = 'Shipment.ShipmentCreated' 
+    AND encode(data, 'escape')::json ->> 'order_id' = $1
+    """,
+    [order_id]
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcblx0c3Vic2NyaXB0aW9uX25hbWUsXG5cdHN0cmVhbV91dWlkLFxuXHRsYXN0X3NlZW4gXG5GUk9NIHN1YnNjcmlwdGlvbnNcbldIRVJFIHN1YnNjcmlwdGlvbl9uYW1lICA9ICdzaGlwbWVudCciLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ2IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result6 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+    	subscription_name,
+    	stream_uuid,
+    	last_seen 
+    FROM subscriptions
+    WHERE subscription_name  = 'shipment'
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgXG5PUkRFUiBCWSBzdHJlYW1faWQgQVNDIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0NyIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result7 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      stream_id,
+      stream_uuid,
+      stream_version 
+    FROM streams 
+    ORDER BY stream_id ASC
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCAgXG5cdGUuZXZlbnRfdHlwZSxcblx0c2Uuc3RyZWFtX2lkLFxuXHRzZS5zdHJlYW1fdmVyc2lvbixcblx0c2Uub3JpZ2luYWxfc3RyZWFtX2lkLFxuXHRzZS5vcmlnaW5hbF9zdHJlYW1fdmVyc2lvbiBcbkZST00gc3RyZWFtX2V2ZW50cyBzZVxuICBKT0lOIGV2ZW50cyBlXG5cdFx0T04gc2UuZXZlbnRfaWQgPSBlLmV2ZW50X2lkXG5PUkRFUiBCWSBcblx0c2Uub3JpZ2luYWxfc3RyZWFtX2lkIEFTQywgXG5cdHNlLm9yaWdpbmFsX3N0cmVhbV92ZXJzaW9uIEFTQyxcblx0c2Uuc3RyZWFtX3ZlcnNpb24gQVNDLCBcblx0c2Uuc3RyZWFtX2lkIERFU0MiLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ4IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result8 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT  
+    	e.event_type,
+    	se.stream_id,
+    	se.stream_version,
+    	se.original_stream_id,
+    	se.original_stream_version 
+    FROM stream_events se
+      JOIN events e
+    		ON se.event_id = e.event_id
+    ORDER BY 
+    	se.original_stream_id ASC, 
+    	se.original_stream_version ASC,
+    	se.stream_version ASC, 
+    	se.stream_id DESC
+    """,
+    []
+  )
+```
+
+### Projector
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuUHJvamVjdG9ycy5PcmRlcnMgZG9cbiAgdXNlIENvbW1hbmRlZC5Qcm9qZWN0aW9ucy5FY3RvLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICByZXBvOiBFc0NxcnNBbmF0b215LlJlcG8sXG4gICAgbmFtZTogXCJvcmRlcnNcIlxuXG4gIHVzZSBFc0NxcnNBbmF0b215LkJhc2UuRXZlbnRIYW5kbGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5FdmVudHMue1xuICAgIE9yZGVyQ3JlYXRlZCxcbiAgICBPcmRlckNvbXBsZXRlZCxcbiAgICBPcmRlckRlbGV0ZWRcbiAgfVxuXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuUHJvamVjdGlvbnMue09yZGVyLCBPcmRlckl0ZW19XG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyU3RhdHVzXG5cbiAgcHJvamVjdChcbiAgICAlT3JkZXJDcmVhdGVke30gPSBldmVudCxcbiAgICBfbWV0YWRhdGEsXG4gICAgZm4gbXVsdGkgLT5cbiAgICAgIG11bHRpXG4gICAgICB8PiBFY3RvLk11bHRpLmluc2VydChcbiAgICAgICAgOm9yZGVycyxcbiAgICAgICAgJU9yZGVye1xuICAgICAgICAgIGlkOiBldmVudC5pZCxcbiAgICAgICAgICBvcmRlcl9udW1iZXI6IGV2ZW50Lm9yZGVyX251bWJlcixcbiAgICAgICAgICBidXNpbmVzc19wYXJ0bmVyOiBldmVudC5idXNpbmVzc19wYXJ0bmVyLFxuICAgICAgICAgIHN0YXR1czogT3JkZXJTdGF0dXMub3BlbigpLFxuICAgICAgICAgIGl0ZW1zOlxuICAgICAgICAgICAgZXZlbnQuaXRlbXNcbiAgICAgICAgICAgIHw+IEVudW0ubWFwKFxuICAgICAgICAgICAgICAmJU9yZGVySXRlbXtcbiAgICAgICAgICAgICAgICBpZDogVVVJRC51dWlkNCgpLFxuICAgICAgICAgICAgICAgIG9yZGVyX2lkOiBldmVudC5pZCxcbiAgICAgICAgICAgICAgICBwcm9kdWN0X2lkOiAmMS5wcm9kdWN0X2lkLFxuICAgICAgICAgICAgICAgIHF1YW50aXR5OiAmMS5xdWFudGl0eSxcbiAgICAgICAgICAgICAgICB1b206ICYxLnVvbVxuICAgICAgICAgICAgICB9XG4gICAgICAgICAgICApXG4gICAgICAgIH1cbiAgICAgIClcbiAgICBlbmRcbiAgKVxuXG4gIHByb2plY3QoXG4gICAgJU9yZGVyQ29tcGxldGVke2lkOiBpZH0sXG4gICAgX21ldGFkYXRhLFxuICAgIGZuIG11bHRpIC0+XG4gICAgICBtdWx0aVxuICAgICAgfD4gRWN0by5NdWx0aS5ydW4oOm9yZGVyX3RvX3VwZGF0ZSwgZm4gcmVwbywgX2NoYW5nZXMgLT5cbiAgICAgICAgezpvaywgcmVwby5nZXQoT3JkZXIsIGlkKX1cbiAgICAgIGVuZClcbiAgICAgIHw+IEVjdG8uTXVsdGkudXBkYXRlKDpvcmRlciwgZm4gJXtvcmRlcl90b191cGRhdGU6IG9yZGVyfSAtPlxuICAgICAgICBFY3RvLkNoYW5nZXNldC5jaGFuZ2Uob3JkZXIsXG4gICAgICAgICAgc3RhdHVzOiBPcmRlclN0YXR1cy5jb21wbGV0ZWQoKVxuICAgICAgICApXG4gICAgICBlbmQpXG4gICAgZW5kXG4gIClcblxuICBwcm9qZWN0KFxuICAgICVPcmRlckRlbGV0ZWR7aWQ6IGlkfSxcbiAgICBfbWV0YWRhdGEsXG4gICAgZm4gbXVsdGkgLT5cbiAgICAgIG11bHRpXG4gICAgICB8PiBFY3RvLk11bHRpLnJ1big6b3JkZXJfdG9fZGVsZXRlLCBmbiByZXBvLCBfY2hhbmdlcyAtPlxuICAgICAgICB7cm93c19kZWxldGVkLCBffSA9IGZyb20obyBpbiBPcmRlciwgd2hlcmU6IG8uaWQgPT0gXmlkKSB8PiByZXBvLmRlbGV0ZV9hbGwoKVxuICAgICAgICB7Om9rLCByb3dzX2RlbGV0ZWR9XG4gICAgICBlbmQpXG4gICAgZW5kXG4gIClcblxuZW5kIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Order.Projectors.Orders do
+    use Commanded.Projections.Ecto,
+      application: EsCqrsAnatomy.App,
+      repo: EsCqrsAnatomy.Repo,
+      name: "orders"
+
+    use EsCqrsAnatomy.Base.EventHandler
+
+    alias EsCqrsAnatomy.Order.Events.{
+      OrderCreated,
+      OrderCompleted,
+      OrderDeleted
+    }
+
+    alias EsCqrsAnatomy.Order.Projections.{Order, OrderItem}
+    alias EsCqrsAnatomy.Order.Aggregate.OrderStatus
+
+    project(
+      %OrderCreated{} = event,
+      _metadata,
+      fn multi ->
+        multi
+        |> Ecto.Multi.insert(
+          :orders,
+          %Order{
+            id: event.id,
+            order_number: event.order_number,
+            business_partner: event.business_partner,
+            status: OrderStatus.open(),
+            items:
+              event.items
+              |> Enum.map(
+                &%OrderItem{
+                  id: UUID.uuid4(),
+                  order_id: event.id,
+                  product_id: &1.product_id,
+                  quantity: &1.quantity,
+                  uom: &1.uom
+                }
+              )
+          }
+        )
+      end
+    )
+
+    project(
+      %OrderCompleted{id: id},
+      _metadata,
+      fn multi ->
+        multi
+        |> Ecto.Multi.run(:order_to_update, fn repo, _changes ->
+          {:ok, repo.get(Order, id)}
+        end)
+        |> Ecto.Multi.update(:order, fn %{order_to_update: order} ->
+          Ecto.Changeset.change(order,
+            status: OrderStatus.completed()
+          )
+        end)
+      end
+    )
+
+    project(
+      %OrderDeleted{id: id},
+      _metadata,
+      fn multi ->
+        multi
+        |> Ecto.Multi.run(:order_to_delete, fn repo, _changes ->
+          {rows_deleted, _} = from(o in Order, where: o.id == ^id) |> repo.delete_all()
+          {:ok, rows_deleted}
+        end)
+      end
+    )
+
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJkYXRhYmFzZSI6InJlYWRfc3RvcmUiLCJob3N0bmFtZSI6InBvc3RncmVzIiwicGFzc3dvcmQiOiJwb3N0Z3JlcyIsInBvcnQiOjU0MzIsInR5cGUiOiJwb3N0Z3JlcyIsInVzZV9pcHY2IjpmYWxzZSwidXNlX3NzbCI6ZmFsc2UsInVzZXJuYW1lIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifQ","chunks":null,"kind":"Elixir.KinoDB.ConnectionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+opts = [
+  hostname: "postgres",
+  port: 5432,
+  username: "postgres",
+  password: "postgres",
+  database: "read_store"
+]
+
+{:ok, conn} = Kino.start_child({Postgrex, opts})
+```
+
+**Remember to switch to conn_rs**
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuICBvLm9yZGVyX251bWJlciwgXG4gIG8uYnVzaW5lc3NfcGFydG5lciwgXG4gIG8uc3RhdHVzLCBcbiAgb2kucHJvZHVjdF9pZCwgXG4gIG9pLnF1YW50aXR5LCBcbiAgb2kudW9tIFxuRlJPTSBvcmRlcnMgbyBcblx0Sk9JTiBvcmRlcl9pdGVtcyBvaSBcblx0XHRPTiBvLmlkID0gb2kub3JkZXJfaWQgXG5PUkRFUiBCWSBcbiAgby5vcmRlcl9udW1iZXIsIFxuICBvaS5xdWFudGl0eSAiLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ5IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result9 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT
+      o.order_number, 
+      o.business_partner, 
+      o.status, 
+      oi.product_id, 
+      oi.quantity, 
+      oi.uom 
+    FROM orders o 
+    	JOIN order_items oi 
+    		ON o.id = oi.order_id 
+    ORDER BY 
+      o.order_number, 
+      oi.quantity 
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6InNlbGVjdCBcblx0XHRwcm9qZWN0aW9uX25hbWUsXG5cdFx0bGFzdF9zZWVuX2V2ZW50X251bWJlciBcblx0ZnJvbSBwcm9qZWN0aW9uX3ZlcnNpb25zXG5cdHdoZXJlIHByb2plY3Rpb25fbmFtZSA9ICdvcmRlcnMnIiwicmVzdWx0X3ZhcmlhYmxlIjoicHJvamVjdGlvbl92ZXJzaW9uIiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+projection_version =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    select 
+    		projection_name,
+    		last_seen_event_number 
+    	from projection_versions
+    	where projection_name = 'orders'
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJsYXN0X3NlZW5fZXZlbnRfbnVtYmVyIiwiY29kZSI6IiV7cm93czogW1tfICwgbGFzdF9zZWVuX2V2ZW50X251bWJlcl1dfSA9IHByb2plY3Rpb25fdmVyc2lvblxubGFzdF9zZWVuX2V2ZW50X251bWJlciIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+last_seen_event_number =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    %{rows: [[_ , last_seen_event_number]]} = projection_version
+    last_seen_event_number
+    """,
+    file: __ENV__.file
+  )
+```
+
+<!-- livebook:{"attrs":"eyJkYXRhYmFzZSI6ImV2ZW50X3N0b3JlIiwiaG9zdG5hbWUiOiJwb3N0Z3JlcyIsInBhc3N3b3JkIjoicG9zdGdyZXMiLCJwb3J0Ijo1NDMyLCJ0eXBlIjoicG9zdGdyZXMiLCJ1c2VfaXB2NiI6ZmFsc2UsInVzZV9zc2wiOmZhbHNlLCJ1c2VybmFtZSI6InBvc3RncmVzIiwidmFyaWFibGUiOiJjb25uIn0","chunks":null,"kind":"Elixir.KinoDB.ConnectionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+opts = [
+  hostname: "postgres",
+  port: 5432,
+  username: "postgres",
+  password: "postgres",
+  database: "event_store"
+]
+
+{:ok, conn} = Kino.start_child({Postgrex, opts})
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZXZlbnRfdHlwZSxcbiAgZGF0YVxuRlJPTSBldmVudHMgZVxuICBKT0lOIHN0cmVhbV9ldmVudHMgc2VcbiAgICBPTiBlLmV2ZW50X2lkID0gc2UuZXZlbnRfaWRcbldIRVJFIFxuXHRzZS5zdHJlYW1faWQgID0gMFxuXHRBTkQgc2Uuc3RyZWFtX3ZlcnNpb24gPSB7e2xhc3Rfc2Vlbl9ldmVudF9udW1iZXJ9fVxuIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0MTEiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result11 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT 
+      event_type,
+      data
+    FROM events e
+      JOIN stream_events se
+        ON e.event_id = se.event_id
+    WHERE 
+    	se.stream_id  = 0
+    	AND se.stream_version = $1
+
+    """,
+    [last_seen_event_number]
+  )
+```
+
+## Performance
+
+### Stream Linking
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUG9saWNpZXMuU3RyZWFtTGlua2VyIGRvXG4gIHVzZSBDb21tYW5kZWQuRXZlbnQuSGFuZGxlcixcbiAgICBhcHBsaWNhdGlvbjogRXNDcXJzQW5hdG9teS5BcHAsXG4gICAgbmFtZTogXCJzdHJlYW1fbGlua2VyXCIsXG4gICAgc3RhcnRfZnJvbTogOm9yaWdpblxuXG4gIHJlcXVpcmUgTG9nZ2VyXG5cbiAgYWxpYXMgQ29tbWFuZGVkLkV2ZW50LkZhaWx1cmVDb250ZXh0XG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuRXZlbnRzLntPcmRlckNyZWF0ZWQsIE9yZGVyQ29tcGxldGVkfVxuXG4gIGRlZiBoYW5kbGUoJU9yZGVyQ3JlYXRlZHt9LCAle2V2ZW50X2lkOiBldmVudF9pZH0pIGRvXG4gICAgb3JkZXJzX3N0cmVhbV9pZCA9IFVVSUQudXVpZDUoOm9pZCwgXCJvcmRlcnNcIilcbiAgICBFc0NxcnNBbmF0b215LkV2ZW50U3RvcmUubGlua190b19zdHJlYW0ob3JkZXJzX3N0cmVhbV9pZCwgOmFueV92ZXJzaW9uLCBbZXZlbnRfaWRdKVxuICBlbmRcblxuICBkZWYgaGFuZGxlKCVPcmRlckNvbXBsZXRlZHt9LCAle2V2ZW50X2lkOiBldmVudF9pZH0pIGRvXG4gICAgb3JkZXJzX3N0cmVhbV9pZCA9IFVVSUQudXVpZDUoOm9pZCwgXCJvcmRlcnNcIilcbiAgICBFc0NxcnNBbmF0b215LkV2ZW50U3RvcmUubGlua190b19zdHJlYW0ob3JkZXJzX3N0cmVhbV9pZCwgOmFueV92ZXJzaW9uLCBbZXZlbnRfaWRdKVxuICBlbmRcblxuICBkZWYgZXJyb3IoezplcnJvciwgcmVhc29ufSwgZXZlbnQsICVGYWlsdXJlQ29udGV4dHtjb250ZXh0OiBjb250ZXh0fSkgZG9cbiAgICBjb250ZXh0ID0gcmVjb3JkX2ZhaWx1cmUoY29udGV4dClcblxuICAgIGNhc2UgTWFwLmdldChjb250ZXh0LCA6ZmFpbHVyZXMpIGRvXG4gICAgICB0b29fbWFueSB3aGVuIHRvb19tYW55ID49IDMgLT5cbiAgICAgICAgIyBza2lwIGJhZCBldmVudCBhZnRlciB0aGlyZCBmYWlsdXJlXG4gICAgICAgIExvZ2dlci5lcnJvcihcbiAgICAgICAgICBcIiN7X19NT0RVTEVfX30gU2tpcHBpbmcgYmFkIGV2ZW50LCB0b28gbWFueSBmYWlsdXJlczogI3tpbnNwZWN0KGV2ZW50KX0gZm9yIHJlYXNvbjogI3tpbnNwZWN0KHJlYXNvbil9XCJcbiAgICAgICAgKVxuXG4gICAgICAgIDpza2lwXG5cbiAgICAgIF8gLT5cbiAgICAgICAgIyByZXRyeSBldmVudCwgZmFpbHVyZSBjb3VudCBpcyBpbmNsdWRlZCBpbiBjb250ZXh0IG1hcFxuICAgICAgICB7OnJldHJ5LCBjb250ZXh0fVxuICAgIGVuZFxuICBlbmRcblxuICBkZWZwIHJlY29yZF9mYWlsdXJlKGNvbnRleHQpIGRvXG4gICAgTWFwLnVwZGF0ZShjb250ZXh0LCA6ZmFpbHVyZXMsIDEsIGZuIGZhaWx1cmVzIC0+IGZhaWx1cmVzICsgMSBlbmQpXG4gIGVuZFxuZW5kXG4iLCJjb29raWUiOiJzZWNyZXRjb29raWUiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAaG9zdDEuY29tIiwibm9kZV9zZWNyZXQiOiIiLCJ1c2VfY29va2llX3NlY3JldCI6ZmFsc2UsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Policies.StreamLinker do
+    use Commanded.Event.Handler,
+      application: EsCqrsAnatomy.App,
+      name: "stream_linker",
+      start_from: :origin
+
+    require Logger
+
+    alias Commanded.Event.FailureContext
+    alias EsCqrsAnatomy.Order.Events.{OrderCreated, OrderCompleted}
+
+    def handle(%OrderCreated{}, %{event_id: event_id}) do
+      orders_stream_id = UUID.uuid5(:oid, "orders")
+      EsCqrsAnatomy.EventStore.link_to_stream(orders_stream_id, :any_version, [event_id])
+    end
+
+    def handle(%OrderCompleted{}, %{event_id: event_id}) do
+      orders_stream_id = UUID.uuid5(:oid, "orders")
+      EsCqrsAnatomy.EventStore.link_to_stream(orders_stream_id, :any_version, [event_id])
+    end
+
+    def error({:error, reason}, event, %FailureContext{context: context}) do
+      context = record_failure(context)
+
+      case Map.get(context, :failures) do
+        too_many when too_many >= 3 ->
+          # skip bad event after third failure
+          Logger.error(
+            "#{__MODULE__} Skipping bad event, too many failures: #{inspect(event)} for reason: #{inspect(reason)}"
+          )
+
+          :skip
+
+        _ ->
+          # retry event, failure count is included in context map
+          {:retry, context}
+      end
+    end
+
+    defp record_failure(context) do
+      Map.update(context, :failures, 1, fn failures -> failures + 1 end)
+    end
+  end
+
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuRXZlbnRIYW5kbGVyU3VwZXJ2aXNvciBkb1xuICB1c2UgU3VwZXJ2aXNvclxuXG4gIGRlZiBzdGFydF9saW5rKF9hcmdzKSBkb1xuICAgIFN1cGVydmlzb3Iuc3RhcnRfbGluayhfX01PRFVMRV9fLCBbXSwgbmFtZTogX19NT0RVTEVfXylcbiAgZW5kXG5cbiAgZGVmIGluaXQoX2FyZ3MpIGRvXG4gICAgU3VwZXJ2aXNvci5pbml0KFxuICAgICAgW1xuICAgICAgICBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3RvcnMuT3JkZXJzLFxuICAgICAgICBFc0NxcnNBbmF0b215LlNoaXBtZW50LlBvbGljaWVzLlNoaXBtZW50LFxuICAgICAgICBFc0NxcnNBbmF0b215LlBvbGljaWVzLlN0cmVhbUxpbmtlclxuICAgICAgXSxcbiAgICAgIHN0cmF0ZWd5OiA6b25lX2Zvcl9vbmVcbiAgICApXG4gIGVuZFxuZW5kIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.EventHandlerSupervisor do
+    use Supervisor
+
+    def start_link(_args) do
+      Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+    end
+
+    def init(_args) do
+      Supervisor.init(
+        [
+          EsCqrsAnatomy.Order.Projectors.Orders,
+          EsCqrsAnatomy.Shipment.Policies.Shipment,
+          EsCqrsAnatomy.Policies.StreamLinker
+        ],
+        strategy: :one_for_one
+      )
+    end
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiUHJvY2Vzcy53aGVyZWlzKEVzQ3Fyc0FuYXRvbXkuRXZlbnRIYW5kbGVyU3VwZXJ2aXNvcikgfD4gUHJvY2Vzcy5leGl0KDpraWxsKSIsImNvb2tpZSI6InNlY3JldGNvb2tpZSIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBob3N0MS5jb20iLCJub2RlX3NlY3JldCI6IiIsInVzZV9jb29raWVfc2VjcmV0IjpmYWxzZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+Kino.RPC.eval_string(
+  node,
+  ~S"Process.whereis(EsCqrsAnatomy.EventHandlerSupervisor) |> Process.exit(:kill)",
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJvcmRlcnNfc3RyZWFtX2lkIiwiY29kZSI6Im9yZGVyc19zdHJlYW1faWQgPSBVVUlELnV1aWQ1KDpvaWQsIFwib3JkZXJzXCIpIiwiY29va2llIjoic2VjcmV0Y29va2llIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGhvc3QxLmNvbSIsIm5vZGVfc2VjcmV0IjoiIiwidXNlX2Nvb2tpZV9zZWNyZXQiOmZhbHNlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :"escqrsanatomy@host1.com"
+Node.set_cookie(node, :secretcookie)
+
+orders_stream_id =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    orders_stream_id = UUID.uuid5(:oid, "orders")
+    """,
+    file: __ENV__.file
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb25cbkZST00gc3RyZWFtc1xuV0hFUkUgc3RyZWFtX3V1aWQgPSB7e29yZGVyc19zdHJlYW1faWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdDEzIiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result13 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT
+      stream_uuid,
+      stream_version
+    FROM streams
+    WHERE stream_uuid = $1
+    """,
+    [orders_stream_id]
+  )
+```
+
+### Aggregate Snapshoot
+
+<!-- livebook:{"break_markdown":true} -->
+
+```
+config :es_cqrs_anatomy, EsCqrsAnatomy.App,
+  snapshotting: %{
+    EsCqrsAnatomy.Order.Aggregate.Order => [
+      snapshot_every: 1,
+      snapshot_version: 1
+    ]
+  }
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuXHRzLnNvdXJjZV92ZXJzaW9uLFxuXHRzLnNvdXJjZV90eXBlLFxuICBzLm1ldGFkYXRhLFxuXHRzLmRhdGFcbkZST00gc25hcHNob3RzIHMgIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0MTIiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result12 =
+  Postgrex.query!(
+    conn,
+    ~S"""
+    SELECT
+    	s.source_version,
+    	s.source_type,
+      s.metadata,
+    	s.data
+    FROM snapshots s 
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"offset":67289,"stamp":{"token":"XCP.E_Jc7Phu-WYSJRbizrbzKpifZVyAw_QDRahGIoPuCLZ5MFZlBchkkB-n4udBZUjfG-NgGkmSjyo04xApTJmOpKFho9AgMLKmvaqgck6iwbnLpYxourlOZ5w6","version":2}} -->

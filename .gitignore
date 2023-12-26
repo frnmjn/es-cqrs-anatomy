@@ -1,0 +1,5 @@
+_build
+.vscode
+deps
+*.dump
+.elixir_ls
