@@ -43,7 +43,9 @@ defmodule EsCqrsAnatomy.MixProject do
       {:eventstore, "~> 1.2"},
       {:jason, "~> 1.2"},
       {:typed_struct, "~> 0.3.0"},
-      {:commanded_uniqueness_middleware, "~> 0.7.1"}
+      {:commanded_uniqueness_middleware, "~> 0.7.1"},
+      {:vex, "~> 0.9.1"},
+      {:email_checker, "~> 0.2.4"}
     ]
   end
 

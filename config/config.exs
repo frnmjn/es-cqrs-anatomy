@@ -14,6 +14,12 @@ config :commanded_uniqueness_middleware,
   ttl: 60,
   use_command_as_partition: false
 
+config :vex,
+  sources: [
+    EsCqrsAnatomy.Support.Validators,
+    Vex.Validators
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

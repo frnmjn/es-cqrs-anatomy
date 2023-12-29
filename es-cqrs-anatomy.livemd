@@ -65,7 +65,7 @@ Event Storming is a **collaborative workshop technique** for understanding and d
 
 TALK IS CHEAP SHOW ME THE CODE
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogXCIwMDAxXCIsIFxuICBidXNpbmVzc19wYXJ0bmVyOiBcIkJQMVwiXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goaW5jbHVkZV9leGVjdXRpb25fcmVzdWx0OiB0cnVlKSIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogXCIwMDAwMVwiLCBcbiAgYnVzaW5lc3NfcGFydG5lcjogXCJtYXJpby5yb3NzaUBnb29nbGUuY29tXCJcbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaChpbmNsdWRlX2V4ZWN1dGlvbl9yZXN1bHQ6IHRydWUpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -80,8 +80,8 @@ command_result =
 
     %CreateOrder{
       id: UUID.uuid4(), 
-      order_number: "0001", 
-      business_partner: "BP1"
+      order_number: "00001", 
+      business_partner: "mario.rossi@google.com"
     } 
     |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
     """,
