@@ -6,6 +6,8 @@ defmodule EsCqrsAnatomy.Router do
 
   alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
 
+  middleware Commanded.Middleware.Uniqueness
+
   identify(Order, by: :id)
 
   dispatch([CreateOrder, CompleteOrder], to: Order)
