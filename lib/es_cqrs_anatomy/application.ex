@@ -12,7 +12,9 @@ defmodule EsCqrsAnatomy.Application do
       EsCqrsAnatomy.App,
 
       # Start the Ecto Repo
-      EsCqrsAnatomy.Repo
+      EsCqrsAnatomy.Repo,
+      # Start all the event handler (Projection and Policy)
+      EsCqrsAnatomy.EventHandlerSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

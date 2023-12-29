@@ -41,7 +41,8 @@ defmodule EsCqrsAnatomy.MixProject do
       {:ecto, "~> 3.6"},
       {:ecto_sql, "~> 3.6"},
       {:eventstore, "~> 1.2"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:typed_struct, "~> 0.3.0"}
     ]
   end
 

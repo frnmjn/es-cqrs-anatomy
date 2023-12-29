@@ -5,6 +5,8 @@ services:
     container_name: postgres
     image: postgres:15-alpine
     network_mode: es-cqrs-anatomy-network
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -32,7 +34,7 @@ services:
       - LIVEBOOK_PASSWORD=es-cqrs-anatomy
       - LIVEBOOK_DISTRIBUTION=name
       - LIVEBOOK_NODE=escqrsanatomylivebook@escqrsanatomylivebook
-      - LIVEBOOK_COOKIE=secretcookie
+      - LB_COOKIE=secretcookie
     volumes:
       - ./es-cqrs-anatomy.livemd:/data/es-cqrs-anatomy.livemd
     depends_on:

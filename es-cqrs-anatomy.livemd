@@ -55,19 +55,57 @@ graph LR;
 Event Storming is a **collaborative workshop technique** for understanding and designing **complex business processes or software systems**. It involves a visual approach where participants **use sticky notes to represent events, commands, aggregates,** and other key elements on a large workspace. The goal is to foster communication, **shared understanding**, and **uncover insights** into the dynamics of the system or process being modeled. Event Storming is commonly used in agile development, domain-driven design, and other contexts where a shared understanding among team members is crucial.
 
 **The** picture that explains everything
-![Alt text](https://mrpicky.dev/wp-content/uploads/2021/12/DLES-Brandolini.png "a title")
+![image](https://mrpicky.dev/wp-content/uploads/2021/12/DLES-Brandolini.png)
 
 ## Yet Another ERP
 
-![images](files:/data/files/events.png)
+![images](https://github.com/frnmjn/es-cqrs-anatomy/blob/main/img/01-events.png?raw=true)
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiXCJJT1wiIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"break_markdown":true} -->
+
+TALK IS CHEAP SHOW ME THE CODE
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogXCIwMDAxXCIsIFxuICBidXNpbmVzc19wYXJ0bmVyOiBcIkJQMVwiXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goaW5jbHVkZV9leGVjdXRpb25fcmVzdWx0OiB0cnVlKSIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
 node = :escqrsanatomy@escqrsanatomy
 Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
-Kino.RPC.eval_string(node, ~S"\"IO\"", file: __ENV__.file)
+
+command_result =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    alias EsCqrsAnatomy.Order.Commands.CreateOrder
+
+    %CreateOrder{
+      id: UUID.uuid4(), 
+      order_number: "0001", 
+      business_partner: "BP1"
+    } 
+    |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+    """,
+    file: __ENV__.file
+  )
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhZ2dyZWdhdGVfdXVpZCIsImNvZGUiOiJjb21tYW5kX3Jlc3VsdFxufD4gZWxlbSgxKVxufD4gTWFwLmdldCg6YWdncmVnYXRlX3V1aWQpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+aggregate_uuid =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    command_result
+    |> elem(1)
+    |> Map.get(:aggregate_uuid)
+    """,
+    file: __ENV__.file
+  )
 ```
 
 <!-- livebook:{"attrs":"eyJkYXRhYmFzZSI6ImVzX2NxcnNfYW5hdG9teV9wcm9kIiwiaG9zdG5hbWUiOiJwb3N0Z3JlcyIsInBhc3N3b3JkIjoicG9zdGdyZXMiLCJwb3J0Ijo1NDMyLCJ0eXBlIjoicG9zdGdyZXMiLCJ1c2VfaXB2NiI6ZmFsc2UsInVzZV9zc2wiOmZhbHNlLCJ1c2VybmFtZSI6InBvc3RncmVzIiwidmFyaWFibGUiOiJjb25uIn0","chunks":null,"kind":"Elixir.KinoDB.ConnectionCell","livebook_object":"smart_cell"} -->
@@ -84,10 +122,131 @@ opts = [
 {:ok, conn} = Kino.start_child({Postgrex, opts})
 ```
 
-<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6InNlbGVjdCAqIGZyb20gZXZlbnRzIGxpbWl0IDEwMCIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdCIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZXZlbnRfaWQ6OnRleHQsXG4gIGV2ZW50X3R5cGUsXG4gIGRhdGFcbkZST00gZXZlbnRzIFxuV0hFUkUgZW5jb2RlKGRhdGEsICdlc2NhcGUnKTo6anNvbiAtPj4gJ2lkJyA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdF9ldmVudHMiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
 
 ```elixir
-result = Postgrex.query!(conn, "select * from events limit 100", [])
+result_events =
+  Postgrex.query!(
+    conn,
+    """
+    SELECT 
+      event_id::text,
+      event_type,
+      data
+    FROM events 
+    WHERE encode(data, 'escape')::json ->> 'id' = $1
+    """,
+    [aggregate_uuid]
+  )
 ```
 
-<!-- livebook:{"offset":4496,"stamp":{"token":"XCP.A2ZZ3zSnrBkqn3oEPGePfjRbesreJ05FvcPsHRHKPUvlNkA_S_Odg7tOj6HoxLXYrRNYlYo_H9FpAGSe1TlE5QFzVU3BYz3nTGCwTjZoKKhD","version":2}} -->
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgXG5XSEVSRSBzdHJlYW1fdXVpZCA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdCIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result =
+  Postgrex.query!(
+    conn,
+    """
+    SELECT 
+      stream_id,
+      stream_uuid,
+      stream_version 
+    FROM streams 
+    WHERE stream_uuid = $1
+    """,
+    [aggregate_uuid]
+  )
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5cbiVDb21wbGV0ZU9yZGVye1xuICBpZDogYWdncmVnYXRlX3V1aWRcbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaChpbmNsdWRlX2V4ZWN1dGlvbl9yZXN1bHQ6IHRydWUpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.Order.Commands.CompleteOrder
+
+  %CompleteOrder{
+    id: aggregate_uuid
+  } 
+  |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgXG5XSEVSRSBzdHJlYW1fdXVpZCA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InN0cmVhbSIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+stream =
+  Postgrex.query!(
+    conn,
+    """
+    SELECT 
+      stream_id,
+      stream_uuid,
+      stream_version 
+    FROM streams 
+    WHERE stream_uuid = $1
+    """,
+    [aggregate_uuid]
+  )
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJzdHJlYW1faWQiLCJjb2RlIjoiJXtyb3dzOiBbW3N0cmVhbV9pZCB8IF9dIHwgX119ID0gc3RyZWFtXG5zdHJlYW1faWQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+stream_id =
+  Kino.RPC.eval_string(
+    node,
+    ~S"""
+    %{rows: [[stream_id | _] | _]} = stream
+    stream_id
+    """,
+    file: __ENV__.file
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZXZlbnRfaWQ6OnRleHQsXG4gIGV2ZW50X3R5cGUsXG4gIGRhdGFcbkZST00gZXZlbnRzIFxuV0hFUkUgZW5jb2RlKGRhdGEsICdlc2NhcGUnKTo6anNvbiAtPj4gJ2lkJyA9IHt7YWdncmVnYXRlX3V1aWR9fSIsInJlc3VsdF92YXJpYWJsZSI6InJlc3VsdDMiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result3 =
+  Postgrex.query!(
+    conn,
+    """
+    SELECT 
+      event_id::text,
+      event_type,
+      data
+    FROM events 
+    WHERE encode(data, 'escape')::json ->> 'id' = $1
+    """,
+    [aggregate_uuid]
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuICBldmVudF9pZDo6dGV4dCxcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdmVyc2lvblxuRlJPTSBzdHJlYW1fZXZlbnRzIHNlXG5XSEVSRSBzdHJlYW1faWQgPSB7e3N0cmVhbV9pZH19IiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0NCIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result4 =
+  Postgrex.query!(
+    conn,
+    """
+    SELECT
+      event_id::text,
+      stream_id,
+      stream_version
+    FROM stream_events se
+    WHERE stream_id = $1
+    """,
+    [stream_id]
+  )
+```
