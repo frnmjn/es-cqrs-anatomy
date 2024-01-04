@@ -13,11 +13,11 @@ Mix.install([
 
 ### What's Event Sourcing?
 
-**Event sourcing** is like a historical timeline for your data. Instead of storing a snapshot of the current state, event sourcing keeps a record of every change that has happened to your data. This allows you to reconstruct the data's past state, track its evolution over time, and ensure data consistency across different replicas.
+Event sourcing is like a **historical timeline for your data**. Instead of storing a snapshot of the **current state**, event sourcing keeps a record of **every change** that has happened to your data. This allows you to reconstruct the data's past state and track its evolution over time.
 
-Think of it as a medical record for your data. Just as a doctor can review a patient's medical history to diagnose an illness, you can use event sourcing to understand how your data has changed and identify any anomalies.
+Think of it as a medical record for your data. Just as a doctor can review a patient's medical history to diagnose an illness, you can use event sourcing to **understand how your data has changed** and identify any anomalies.
 
-This approach is especially useful for applications that need strong audit trails, complex state tracking, or flexible scalability. However, it also comes with higher storage requirements and computational complexity.
+This approach is especially useful for applications that need strong **audit trails**, complex state tracking, or flexible scalability. However, it also comes with **higher storage requirements** and computational complexity.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -32,7 +32,7 @@ graph LR;
 
 ### What's CQRS?
 
-CQRS (**Command Query Responsibility Segregation**) is like having two separate sets of instructions for your data: one for changing it (commands) and one for reading it (queries). This separation allows for specializing each set of instructions, making data manipulation and retrieval more efficient, especially for applications with high write or read loads.
+CQRS (**Command Query Responsibility Segregation**) is like having **two separate sets of instructions** for your data: one for changing it (commands) and one for reading it (queries). This separation allows for specializing each set of instructions, making data manipulation and retrieval more efficient, especially for applications with high write or read loads.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -40,17 +40,23 @@ CQRS (**Command Query Responsibility Segregation**) is like having two separate 
 
 ```mermaid
 graph LR;
-  C(Command) -->AGG([Aggregate]) -->E(Event) -->ES[(Event Store)];
-  PR(Projector) -->|read| ES;
-  Q(Query) -->PN([Projection]) --> RS[(Read Store)];
-  PR -->|write| RS
+  C(Command) -->|Invoked on| AGG([Aggregate]) -->|Generates|E(Event) -->|Stored to| ES[(Event Store)];
+  PR(Projector) -->|Read from| ES;
+  Q(Query) -->|Query to| PN([Projection]) -->|Retrive from| RS[(Read Store)];
+  PR -->|Write to| RS
 
   
 ```
 
 <!-- livebook:{"break_markdown":true} -->
 
-### Event Storming
+A Command is routed to an Aggregate, that emit an Event. Then the event is stored into the Event Store. 
+The Projector **subscribe** some events and build one or more **table** into the Read Store.
+The Projection **retrieve data** from Read Store based on a Query
+
+<!-- livebook:{"break_markdown":true} -->
+
+### What's Event Storming
 
 Event Storming is a **collaborative workshop technique** for understanding and designing **complex business processes or software systems**. It involves a visual approach where participants **use sticky notes to represent events, commands, aggregates,** and other key elements on a large workspace. The goal is to foster communication, **shared understanding**, and **uncover insights** into the dynamics of the system or process being modeled. Event Storming is commonly used in agile development, domain-driven design, and other contexts where a shared understanding among team members is crucial.
 
@@ -233,7 +239,7 @@ result3 =
   )
 ```
 
-<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuICBldmVudF9pZDo6dGV4dCxcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdmVyc2lvblxuRlJPTSBzdHJlYW1fZXZlbnRzIHNlXG5XSEVSRSBzdHJlYW1faWQgPSB7e3N0cmVhbV9pZH19IiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0NCIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuICBldmVudF9pZDo6dGV4dCxcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdmVyc2lvblxuRlJPTSBzdHJlYW1fZXZlbnRzIHNlXG5XSEVSRSBzdHJlYW1faWQgPSB7e3N0cmVhbV9pZH19XG5PUkRFUiBCWSBzdHJlYW1fdmVyc2lvbiBBU0MiLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ0IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 result4 =
@@ -246,6 +252,7 @@ result4 =
       stream_version
     FROM stream_events se
     WHERE stream_id = $1
+    ORDER BY stream_version ASC
     """,
     [stream_id]
   )
