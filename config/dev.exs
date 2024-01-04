@@ -3,11 +3,11 @@ import Config
 config :es_cqrs_anatomy, EsCqrsAnatomy.EventStore,
   username: "postgres",
   password: "postgres",
-  database: "es_cqrs_anatomy_dev",
+  database: "event_store_dev",
   hostname: "localhost"
 
 config :es_cqrs_anatomy, EsCqrsAnatomy.Repo,
   username: "postgres",
   password: "postgres",
-  database: "es_cqrs_anatomy_dev",
+  database: "read_store_dev",
   hostname: "localhost"
