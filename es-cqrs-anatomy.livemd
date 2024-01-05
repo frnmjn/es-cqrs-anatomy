@@ -1,6 +1,6 @@
-<!-- livebook:{"app_settings":{"auto_shutdown_ms":3600000,"show_source":true,"slug":"es-cqrs-anatomy"},"file_entries":[{"name":"Linus-Torvalds-quote-about-talking-2a9797.jpg","type":"attachment"},{"name":"events.png","type":"attachment"}]} -->
+<!-- livebook:{"app_settings":{"auto_shutdown_ms":3600000,"show_source":true,"slug":"es-cqrs-anatomy"},"file_entries":[{"name":"Linus-Torvalds-quote-about-talking-2a9797.jpg","type":"attachment"},{"name":"cover.jpg","type":"attachment"},{"name":"events.png","type":"attachment"}]} -->
 
-# Gentle introduction to ES/CQRS
+# ES/CQRS's Anatomy
 
 ```elixir
 Mix.install([
@@ -61,11 +61,15 @@ The Projection **retrieve data** from Read Store based on a Query
 Event Storming is a **collaborative workshop technique** for understanding and designing **complex business processes or software systems**. It involves a visual approach where participants **use sticky notes to represent events, commands, aggregates,** and other key elements on a large workspace. The goal is to foster communication, **shared understanding**, and **uncover insights** into the dynamics of the system or process being modeled. Event Storming is commonly used in agile development, domain-driven design, and other contexts where a shared understanding among team members is crucial.
 
 **The** picture that explains everything
-![image](https://mrpicky.dev/wp-content/uploads/2021/12/DLES-Brandolini.png)
+![image](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/eventstorming.png)
 
 ## Yet Another ERP
 
 ![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/01-events.png)
+
+<!-- livebook:{"break_markdown":true} -->
+
+OTHER STEPS OF EVENT STORMING
 
 ## Play with Orders
 
@@ -73,35 +77,9 @@ Event Storming is a **collaborative workshop technique** for understanding and d
 
 <!-- livebook:{"break_markdown":true} -->
 
-Let's create an Order invoking the relative command
+Let's create an Order invoking the relative command and take the aggregate id from the command response, for the next steps.
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogXCIwMDAwMlwiLCBcbiAgYnVzaW5lc3NfcGFydG5lcjogXCJtYXJpby5yb3NzaUBnb29nbGUuY29tXCJcbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaChpbmNsdWRlX2V4ZWN1dGlvbl9yZXN1bHQ6IHRydWUpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
-
-```elixir
-require Kino.RPC
-node = :escqrsanatomy@escqrsanatomy
-Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
-
-command_result =
-  Kino.RPC.eval_string(
-    node,
-    ~S"""
-    alias EsCqrsAnatomy.Order.Commands.CreateOrder
-
-    %CreateOrder{
-      id: UUID.uuid4(), 
-      order_number: "00002", 
-      business_partner: "mario.rossi@google.com"
-    } 
-    |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
-    """,
-    file: __ENV__.file
-  )
-```
-
-Take the aggregate id from the command response, for the next steps.
-
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhZ2dyZWdhdGVfdXVpZCIsImNvZGUiOiJjb21tYW5kX3Jlc3VsdFxufD4gZWxlbSgxKVxufD4gTWFwLmdldCg6YWdncmVnYXRlX3V1aWQpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhZ2dyZWdhdGVfdXVpZCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogRW51bS5yYW5kb20oMS4uOTk5OTkpIHw+IEludGVnZXIudG9fc3RyaW5nKCksIFxuICBidXNpbmVzc19wYXJ0bmVyOiBcIm1hcmlvLnJvc3NpQGdvb2dsZS5jb21cIlxufSBcbnw+IEVzQ3Fyc0FuYXRvbXkuQXBwLmRpc3BhdGNoKGluY2x1ZGVfZXhlY3V0aW9uX3Jlc3VsdDogdHJ1ZSlcbnw+IGVsZW0oMSlcbnw+IE1hcC5nZXQoOmFnZ3JlZ2F0ZV91dWlkKSIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -112,7 +90,14 @@ aggregate_uuid =
   Kino.RPC.eval_string(
     node,
     ~S"""
-    command_result
+    alias EsCqrsAnatomy.Order.Commands.CreateOrder
+
+    %CreateOrder{
+      id: UUID.uuid4(), 
+      order_number: Enum.random(1..99999) |> Integer.to_string(), 
+      business_partner: "mario.rossi@google.com"
+    } 
+    |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
     |> elem(1)
     |> Map.get(:aggregate_uuid)
     """,
@@ -180,7 +165,7 @@ result =
 
 Let's invoke another command on the Aggregate
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5cbiVDb21wbGV0ZU9yZGVye1xuICBpZDogYWdncmVnYXRlX3V1aWRcbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaChpbmNsdWRlX2V4ZWN1dGlvbl9yZXN1bHQ6IHRydWUpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5cbiVDb21wbGV0ZU9yZGVye1xuICBpZDogYWdncmVnYXRlX3V1aWRcbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaCgpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -195,7 +180,7 @@ Kino.RPC.eval_string(
   %CompleteOrder{
     id: aggregate_uuid
   } 
-  |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+  |> EsCqrsAnatomy.App.dispatch()
   """,
   file: __ENV__.file
 )
@@ -223,7 +208,7 @@ stream =
 
 Take the Stream Id of out Aggregate
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJzdHJlYW1faWQiLCJjb2RlIjoiJXtyb3dzOiBbW3N0cmVhbV9pZCB8IF9dIHwgX119ID0gc3RyZWFtXG5zdHJlYW1faWQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJzdHJlYW1faWQiLCJjb2RlIjoiJXtyb3dzOiBbW3N0cmVhbV9pZCB8IF9dXX0gPSBzdHJlYW1cbnN0cmVhbV9pZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -234,7 +219,7 @@ stream_id =
   Kino.RPC.eval_string(
     node,
     ~S"""
-    %{rows: [[stream_id | _] | _]} = stream
+    %{rows: [[stream_id | _]]} = stream
     stream_id
     """,
     file: __ENV__.file
@@ -289,13 +274,10 @@ result3 =
 
 ## The C stand for Command
 
-How a command is routed to the right Aggregate? With the Router of course!
+How a command is routed to the right Aggregate?  
+With the Router of course!
 
-<!-- livebook:{"break_markdown":true} -->
-
-Try to remove CreateOrder from the list and see what happen!
-
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cbiAgXG4gIGlkZW50aWZ5KE9yZGVyLCBieTogOmlkKVxuXG4gIGRpc3BhdGNoKFtDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcl0sIHRvOiBPcmRlcilcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cbiAgXG4gIGlkZW50aWZ5KE9yZGVyLCBieTogOmlkKVxuXG4gIGRpc3BhdGNoKFtDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcl0sIHRvOiBPcmRlcilcbiAgXG5lbmQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -315,13 +297,16 @@ Kino.RPC.eval_string(
     identify(Order, by: :id)
 
     dispatch([CreateOrder, CompleteOrder], to: Order)
+    
   end
   """,
   file: __ENV__.file
 )
 ```
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogXCIwMDAwMlwiLCBcbiAgYnVzaW5lc3NfcGFydG5lcjogXCJsdWNhLnJvc3NpQGdvb2dsZS5jb21cIlxufSBcbnw+IEVzQ3Fyc0FuYXRvbXkuQXBwLmRpc3BhdGNoKCkiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+Try to remove CreateOrder from the list and see what happen!
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJjb21tYW5kX3Jlc3VsdCIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IFVVSUQudXVpZDQoKSwgXG4gIG9yZGVyX251bWJlcjogRW51bS5yYW5kb20oMS4uOTk5OTkpIHw+IEludGVnZXIudG9fc3RyaW5nKCksIFxuICBidXNpbmVzc19wYXJ0bmVyOiBcImx1Y2Eucm9zc2lAZ29vZ2xlLmNvbVwiXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goKSIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -336,7 +321,7 @@ command_result =
 
     %CreateOrder{
       id: UUID.uuid4(), 
-      order_number: "00002", 
+      order_number: Enum.random(1..99999) |> Integer.to_string(), 
       business_partner: "luca.rossi@google.com"
     } 
     |> EsCqrsAnatomy.App.dispatch()
@@ -345,9 +330,23 @@ command_result =
   )
 ```
 
-Cool!  The Command is not registered to any Aggregate
+Cool! The Command is not registered to any Aggregate
 
-**Now put back the CreateOrder command into the list**
+<!-- livebook:{"break_markdown":true} -->
+
+### Middlewares
+
+Middlewares are component used to perform the follow tasks:
+
+* Command Validation (static and dynamic)
+* Uniqueness Check
+* Command Enrichment
+
+<!-- livebook:{"break_markdown":true} -->
+
+**Now put back the CreateOrder command with the following code**
+
+Check carefully! This time we've added some **Middlewares** before to reach the aggregate
 
 <!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIEBtb2R1bGVkb2MgZmFsc2VcbiAgdXNlIENvbW1hbmRlZC5Db21tYW5kcy5Sb3V0ZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215LlN1cHBvcnQuTWlkZGxld2FyZXMuVmFsaWRhdGVcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkFnZ3JlZ2F0ZS5PcmRlclxuXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyfVxuXG4gIG1pZGRsZXdhcmUgVmFsaWRhdGVcbiAgbWlkZGxld2FyZSBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzXG5cbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG5cbiAgZGlzcGF0Y2goW0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyXSwgdG86IE9yZGVyKVxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
@@ -375,6 +374,75 @@ Kino.RPC.eval_string(
     identify(Order, by: :id)
 
     dispatch([CreateOrder, CompleteOrder], to: Order)
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+#### Command Validation
+
+we can do check on mandatory fields and the relative format.
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ3JlYXRlT3JkZXIgZG9cbiAgdXNlIFR5cGVkU3RydWN0XG4gIHVzZSBWZXguU3RydWN0XG5cbiAgQGRlcml2ZSBKYXNvbi5FbmNvZGVyXG4gIHR5cGVkc3RydWN0IGVuZm9yY2U6IHRydWUgZG9cbiAgICBmaWVsZCg6aWQsIFN0cmluZy50KCkpXG4gICAgZmllbGQoOm9yZGVyX251bWJlciwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6YnVzaW5lc3NfcGFydG5lciwgU3RyaW5nLnQoKSlcbiAgZW5kXG5cbiAgdmFsaWRhdGVzKDppZCwgcHJlc2VuY2U6IHRydWUsIHV1aWQ6IGZhbHNlKVxuICB2YWxpZGF0ZXMoOm9yZGVyX251bWJlciwgcHJlc2VuY2U6IHRydWUsIHN0cmluZzogdHJ1ZSlcbiAgdmFsaWRhdGVzKDpidXNpbmVzc19wYXJ0bmVyLCBwcmVzZW5jZTogdHJ1ZSwgZW1haWw6IHRydWUpXG5lbmQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Order.Commands.CreateOrder do
+    use TypedStruct
+    use Vex.Struct
+
+    @derive Jason.Encoder
+    typedstruct enforce: true do
+      field(:id, String.t())
+      field(:order_number, String.t())
+      field(:business_partner, String.t())
+    end
+
+    validates(:id, presence: true, uuid: false)
+    validates(:order_number, presence: true, string: true)
+    validates(:business_partner, presence: true, email: true)
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+We can validate standard format like String, Number ecc or create custom validator. In this example we have two custom validator for UUID and Email
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuU3VwcG9ydC5WYWxpZGF0b3JzLlV1aWQgZG9cbiAgdXNlIFZleC5WYWxpZGF0b3JcblxuICBkZWYgdmFsaWRhdGUodmFsdWUsIF9vcHRpb25zKSBkb1xuICAgIFZleC5WYWxpZGF0b3JzLkJ5LnZhbGlkYXRlKHZhbHVlLFxuICAgICAgZnVuY3Rpb246ICZ2YWxpZF91dWlkPy8xLFxuICAgICAgYWxsb3dfbmlsOiB0cnVlLFxuICAgICAgYWxsb3dfYmxhbms6IGZhbHNlXG4gICAgKVxuICBlbmRcblxuICBkZWZwIHZhbGlkX3V1aWQ/KHZhbHVlKSBkb1xuICAgIGNhc2UgVVVJRC5pbmZvKHZhbHVlKSBkb1xuICAgICAgezpvaywgX30gLT4gdHJ1ZVxuICAgICAgezplcnJvciwgX30gLT4gZmFsc2VcbiAgICBlbmRcbiAgZW5kXG5lbmQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Support.Validators.Uuid do
+    use Vex.Validator
+
+    def validate(value, _options) do
+      Vex.Validators.By.validate(value,
+        function: &valid_uuid?/1,
+        allow_nil: true,
+        allow_blank: false
+      )
+    end
+
+    defp valid_uuid?(value) do
+      case UUID.info(value) do
+        {:ok, _} -> true
+        {:error, _} -> false
+      end
+    end
   end
   """,
   file: __ENV__.file

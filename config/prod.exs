@@ -11,3 +11,6 @@ config :es_cqrs_anatomy, EsCqrsAnatomy.Repo,
   password: "postgres",
   database: "read_store",
   hostname: "postgres"
+
+config :logger,
+  level: :error

@@ -15,4 +15,7 @@ defmodule EsCqrsAnatomy.Support.Validators.Email do
       _ -> {:error, "must be valid email"}
     end
   end
+
+  defp regexp(),
+    do: ~r/^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$/
 end
