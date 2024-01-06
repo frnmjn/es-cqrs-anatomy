@@ -45,7 +45,9 @@ defmodule EsCqrsAnatomy.MixProject do
       {:typed_struct, "~> 0.3.0"},
       {:commanded_uniqueness_middleware, "~> 0.7.1"},
       {:vex, "~> 0.9.1"},
-      {:email_checker, "~> 0.2.4"}
+      {:exconstructor, "~> 1.2"},
+      {:ex_machina, "~> 2.7.0", only: :test},
+      {:struct_access, "~> 1.1.2"}
     ]
   end
 

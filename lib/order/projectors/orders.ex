@@ -37,7 +37,6 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
     fn multi ->
       multi
       |> Ecto.Multi.run(:order_to_update, fn repo, changes ->
-        IO.inspect(changes, label: "changes")
         {:ok, repo.get(Orders, id)}
       end)
       |> Ecto.Multi.update(:order, fn %{order_to_update: order} ->

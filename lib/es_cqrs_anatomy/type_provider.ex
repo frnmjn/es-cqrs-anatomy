@@ -5,8 +5,6 @@ defmodule EsCqrsAnatomy.TypeProvider do
 
   @impl Commanded.EventStore.TypeProvider
   def to_string(struct) do
-    IO.inspect("0000000000000000000000")
-
     struct.__struct__
     |> Atom.to_string()
     |> String.replace("Elixir.EsCqrsAnatomy.", "")
@@ -16,8 +14,6 @@ defmodule EsCqrsAnatomy.TypeProvider do
 
   @impl Commanded.EventStore.TypeProvider
   def to_struct(type) do
-    IO.inspect("1111111111111111111111")
-
     if String.starts_with?(type, "Elixir") do
       type
       |> String.to_atom()
