@@ -18,14 +18,14 @@ defmodule EsCqrsAnatomy.Order.Commands.CreateOrderTest do
   end
 
   test "order_number should be valid" do
-    assert [{:error, :order_number, :string, "must be valid string"}] =
+    assert [{:error, :order_number, :string, "must be a valid string"}] =
              build(:create_order)
              |> put_in([:order_number], 1)
              |> Vex.errors()
   end
 
   test "business_partner should be valid" do
-    assert [{:error, :business_partner, :email, "must be valid email"}] =
+    assert [{:error, :business_partner, :email, "must be a valid email"}] =
              build(:create_order)
              |> put_in([:business_partner], "a@b")
              |> Vex.errors()

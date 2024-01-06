@@ -15,7 +15,16 @@ defmodule EsCqrsAnatomy.Order.Projections.Orders do
   end
 
   def order_number_is_unique?(order_number) do
-    from(o in __MODULE__, select: count("id"), where: o.order_number == ^order_number)
+    from(o in __MODULE__,
+      select: count("id"),
+      where: o.order_number == ^order_number
+    )
     |> Repo.one!() == 0
+  end
+
+  def first_order_number() do
+    from(o in __MODULE__, select: o.order_number, order_by: [o.inserted_at])
+    |> limit(1)
+    |> Repo.all()
   end
 end

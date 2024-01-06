@@ -47,7 +47,8 @@ defmodule EsCqrsAnatomy.MixProject do
       {:vex, "~> 0.9.1"},
       {:exconstructor, "~> 1.2"},
       {:ex_machina, "~> 2.7.0", only: :test},
-      {:struct_access, "~> 1.1.2"}
+      {:struct_access, "~> 1.1.2"},
+      {:faker, "~> 0.17.0"}
     ]
   end
 
