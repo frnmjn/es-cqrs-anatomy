@@ -1,9 +1,8 @@
 defmodule EsCqrsAnatomy.TypeProvider do
   @moduledoc false
 
-  @behaviour EsCqrsAnatomy.EventStore.TypeProvider
+  @behaviour Commanded.EventStore.TypeProvider
 
-  @impl Commanded.EventStore.TypeProvider
   def to_string(struct) do
     struct.__struct__
     |> Atom.to_string()
@@ -12,7 +11,6 @@ defmodule EsCqrsAnatomy.TypeProvider do
     |> String.replace("Commands.", "")
   end
 
-  @impl Commanded.EventStore.TypeProvider
   def to_struct(type) do
     if String.starts_with?(type, "Elixir") do
       type

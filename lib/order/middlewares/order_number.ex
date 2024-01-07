@@ -1,4 +1,4 @@
-alias EsCqrsAnatomy.Order.Projections.Orders
+alias EsCqrsAnatomy.Order.Projections.Order
 alias EsCqrsAnatomy.Order.Commands.CreateOrder
 
 defimpl Commanded.Middleware.Uniqueness.UniqueFields,
@@ -10,5 +10,5 @@ defimpl Commanded.Middleware.Uniqueness.UniqueFields,
     ]
 
   def order_number_is_unique?(_field, value, _owner, _opts),
-    do: Orders.order_number_is_unique?(value)
+    do: Order.order_number_is_unique?(value)
 end

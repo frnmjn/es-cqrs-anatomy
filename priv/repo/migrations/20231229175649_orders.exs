@@ -15,7 +15,7 @@ defmodule EsCqrsAnatomy.Repo.Migrations.Orders do
 
     create table(:order_items, primary_key: false) do
       add(:id, :string, primary_key: true)
-      # add(:order_id, references(:orders, type: :string))
+      add(:order_id, references(:orders, type: :string))
       add(:product_id, :string)
       add(:quantity, :integer)
       add(:uom, :string)

@@ -11,8 +11,7 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
     OrderCompleted
   }
 
-  alias EsCqrsAnatomy.Order.Projections.Orders
-  alias EsCqrsAnatomy.Order.Projections.OrderItems
+  alias EsCqrsAnatomy.Order.Projections.{Order, OrderItem}
   alias EsCqrsAnatomy.Order.Aggregate.OrderStatus
 
   project(
@@ -22,7 +21,7 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
       multi
       |> Ecto.Multi.insert(
         :orders,
-        %Orders{
+        %Order{
           id: event.id,
           order_number: event.order_number,
           business_partner: event.business_partner,
@@ -30,7 +29,7 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
           items:
             event.items
             |> Enum.map(
-              &%OrderItems{
+              &%OrderItem{
                 id: UUID.uuid4(),
                 order_id: event.id,
                 product_id: &1.product_id,
@@ -48,7 +47,7 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
     _metadata,
     fn multi ->
       multi
-      |> Ecto.Multi.run(:order_to_update, fn repo, changes ->
+      |> Ecto.Multi.run(:order_to_update, fn repo, _changes ->
         {:ok, repo.get(Orders, id)}
       end)
       |> Ecto.Multi.update(:order, fn %{order_to_update: order} ->

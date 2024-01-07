@@ -1,10 +1,10 @@
-defmodule EsCqrsAnatomy.Order.Projections.Orders do
+defmodule EsCqrsAnatomy.Order.Projections.Order do
   use Ecto.Schema
 
   import Ecto.Query
 
   alias EsCqrsAnatomy.Repo
-  alias EsCqrsAnatomy.Order.Projections.OrderItems
+  alias EsCqrsAnatomy.Order.Projections.OrderItem
 
   @primary_key {:id, :string, autogenerate: false}
   schema "orders" do
@@ -12,7 +12,7 @@ defmodule EsCqrsAnatomy.Order.Projections.Orders do
     field(:business_partner, :string)
     field(:status, :string)
 
-    has_many(:items, OrderItems, foreign_key: :order_id)
+    has_many(:items, OrderItem)
 
     timestamps(type: :utc_datetime)
   end
