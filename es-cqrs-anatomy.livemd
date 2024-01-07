@@ -694,3 +694,74 @@ Kino.RPC.eval_string(
   file: __ENV__.file
 )
 ```
+
+## Finally the Aggregate
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyIGRvXG4gIHVzZSBUeXBlZFN0cnVjdFxuXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyfVxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkV2ZW50cy57T3JkZXJDcmVhdGVkLCBPcmRlckNvbXBsZXRlZH1cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJTdGF0dXNcblxuICB0eXBlZHN0cnVjdCBlbmZvcmNlOiB0cnVlIGRvXG4gICAgZmllbGQoOmlkLCBTdHJpbmcudCgpKVxuICAgIGZpZWxkKDpvcmRlcl9udW1iZXIsIFN0cmluZy50KCkpXG4gICAgZmllbGQoOmJ1c2luZXNzX3BhcnRuZXIsIFN0cmluZy50KCkpXG4gICAgZmllbGQoOnN0YXR1cywgU3RyaW5nLnQoKSlcbiAgZW5kXG5cbiAgZGVmIGV4ZWN1dGUoJV9fTU9EVUxFX197aWQ6IG5pbH0sICVDcmVhdGVPcmRlcnt9ID0gY29tbWFuZCkgZG9cbiAgICAlT3JkZXJDcmVhdGVke1xuICAgICAgaWQ6IGNvbW1hbmQuaWQsXG4gICAgICBvcmRlcl9udW1iZXI6IGNvbW1hbmQub3JkZXJfbnVtYmVyLFxuICAgICAgYnVzaW5lc3NfcGFydG5lcjogY29tbWFuZC5idXNpbmVzc19wYXJ0bmVyLFxuICAgICAgaXRlbXM6IGNvbW1hbmQuaXRlbXNcbiAgICB9XG4gIGVuZFxuXG4gIGRlZiBleGVjdXRlKCVfX01PRFVMRV9fe30sICVDcmVhdGVPcmRlcnt9KSwgZG86IHs6ZXJyb3IsIFwiT3JkZXIgYWxyZWFkeSBjcmVhdGVkXCJ9XG5cbiAgZGVmIGV4ZWN1dGUoJV9fTU9EVUxFX197c3RhdHVzOiBcIkNPTVBMRVRFRFwifSwgJUNvbXBsZXRlT3JkZXJ7fSksXG4gICAgZG86IHs6ZXJyb3IsIFwiT3JkZXIgYWxyZWFkeSBjb21wbGV0ZWRcIn1cblxuICBkZWYgZXhlY3V0ZSglX19NT0RVTEVfX3t9LCAlQ29tcGxldGVPcmRlcntibG9ja2VkX3Byb2R1Y3RfaWRzOiBibG9ja2VkX3Byb2R1Y3RfaWRzfSlcbiAgICAgIHdoZW4gbGVuZ3RoKGJsb2NrZWRfcHJvZHVjdF9pZHMpID4gMCBkb1xuICAgIHs6ZXJyb3IsIFwiT3JkZXIgY29udGFpbnMgYmxvY2tlZCBwcm9kdWN0czogI3tJTy5pbnNwZWN0KGJsb2NrZWRfcHJvZHVjdF9pZHMpfVwifVxuICBlbmRcblxuICBkZWYgZXhlY3V0ZSglX19NT0RVTEVfX3tpZDogaWR9LCAlQ29tcGxldGVPcmRlcnt9KSwgZG86ICVPcmRlckNvbXBsZXRlZHtpZDogaWR9XG5cbiAgZGVmIGFwcGx5KCVfX01PRFVMRV9fe30gPSBvcmRlciwgJU9yZGVyQ3JlYXRlZHt9ID0gZXZlbnQpIGRvXG4gICAgJV9fTU9EVUxFX197XG4gICAgICBvcmRlclxuICAgICAgfCBpZDogZXZlbnQuaWQsXG4gICAgICAgIG9yZGVyX251bWJlcjogZXZlbnQub3JkZXJfbnVtYmVyLFxuICAgICAgICBidXNpbmVzc19wYXJ0bmVyOiBldmVudC5idXNpbmVzc19wYXJ0bmVyLFxuICAgICAgICBzdGF0dXM6IE9yZGVyU3RhdHVzLm9wZW4oKVxuICAgIH1cbiAgZW5kXG5cbiAgZGVmIGFwcGx5KCVfX01PRFVMRV9fe30gPSBvcmRlciwgJU9yZGVyQ29tcGxldGVke30gPSBldmVudCkgZG9cbiAgICAlX19NT0RVTEVfX3tcbiAgICAgIG9yZGVyXG4gICAgICB8IGlkOiBldmVudC5pZCxcbiAgICAgICAgc3RhdHVzOiBPcmRlclN0YXR1cy5jb21wbGV0ZWQoKVxuICAgIH1cbiAgZW5kXG5lbmRcbiIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Order.Aggregate.Order do
+    use TypedStruct
+
+    alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
+    alias EsCqrsAnatomy.Order.Events.{OrderCreated, OrderCompleted}
+    alias EsCqrsAnatomy.Order.Aggregate.OrderStatus
+
+    typedstruct enforce: true do
+      field(:id, String.t())
+      field(:order_number, String.t())
+      field(:business_partner, String.t())
+      field(:status, String.t())
+    end
+
+    def execute(%__MODULE__{id: nil}, %CreateOrder{} = command) do
+      %OrderCreated{
+        id: command.id,
+        order_number: command.order_number,
+        business_partner: command.business_partner,
+        items: command.items
+      }
+    end
+
+    def execute(%__MODULE__{}, %CreateOrder{}), do: {:error, "Order already created"}
+
+    def execute(%__MODULE__{status: "COMPLETED"}, %CompleteOrder{}),
+      do: {:error, "Order already completed"}
+
+    def execute(%__MODULE__{}, %CompleteOrder{blocked_product_ids: blocked_product_ids})
+        when length(blocked_product_ids) > 0 do
+      {:error, "Order contains blocked products: #{IO.inspect(blocked_product_ids)}"}
+    end
+
+    def execute(%__MODULE__{id: id}, %CompleteOrder{}), do: %OrderCompleted{id: id}
+
+    def apply(%__MODULE__{} = order, %OrderCreated{} = event) do
+      %__MODULE__{
+        order
+        | id: event.id,
+          order_number: event.order_number,
+          business_partner: event.business_partner,
+          status: OrderStatus.open()
+      }
+    end
+
+    def apply(%__MODULE__{} = order, %OrderCompleted{} = event) do
+      %__MODULE__{
+        order
+        | id: event.id,
+          status: OrderStatus.completed()
+      }
+    end
+  end
+
+  """,
+  file: __ENV__.file
+)
+```

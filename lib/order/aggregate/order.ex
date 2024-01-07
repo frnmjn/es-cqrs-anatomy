@@ -31,11 +31,7 @@ defmodule EsCqrsAnatomy.Order.Aggregate.Order do
     {:error, "Order contains blocked products: #{IO.inspect(blocked_product_ids)}"}
   end
 
-  def execute(%__MODULE__{id: id}, %CompleteOrder{}) do
-    %OrderCompleted{
-      id: id
-    }
-  end
+  def execute(%__MODULE__{id: id}, %CompleteOrder{}), do: %OrderCompleted{id: id}
 
   def apply(%__MODULE__{} = order, %OrderCreated{} = event) do
     %__MODULE__{
