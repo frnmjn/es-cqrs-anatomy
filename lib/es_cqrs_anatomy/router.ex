@@ -1,15 +1,14 @@
 defmodule EsCqrsAnatomy.Router do
-  @moduledoc false
   use Commanded.Commands.Router
 
-  alias EsCqrsAnatomy.Support.Middlewares.Validate
-
+  alias EsCqrsAnatomy.Support.Middlewares.{Validate, Enrich}
+  alias Commanded.Middleware.Uniqueness
   alias EsCqrsAnatomy.Order.Aggregate.Order
-
   alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
 
+  middleware Enrich
   middleware Validate
-  middleware Commanded.Middleware.Uniqueness
+  middleware Uniqueness
 
   identify(Order, by: :id)
 

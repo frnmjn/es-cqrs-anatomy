@@ -289,7 +289,7 @@ We define which fields are the key of the Aggregate and which Command should be 
 
 **Note! We have removed CreateOrder intentionally. Let's see what happen...**
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cbiAgXG4gIGlkZW50aWZ5KE9yZGVyLCBieTogOmlkKVxuXG4gIGRpc3BhdGNoKFtDb21wbGV0ZU9yZGVyXSwgdG86IE9yZGVyKVxuICBcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDb21wbGV0ZU9yZGVyfVxuICBcbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG5cbiAgZGlzcGF0Y2goW0NvbXBsZXRlT3JkZXJdLCB0bzogT3JkZXIpXG4gIFxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -304,7 +304,7 @@ Kino.RPC.eval_string(
 
     alias EsCqrsAnatomy.Order.Aggregate.Order
 
-    alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
+    alias EsCqrsAnatomy.Order.Commands.{CompleteOrder}
     
     identify(Order, by: :id)
 
@@ -364,7 +364,7 @@ Middlewares are component used to perform the follow tasks:
 
 **Note! This time we've added some Middlewares before to reach the Aggregate**
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TdXBwb3J0Lk1pZGRsZXdhcmVzLlZhbGlkYXRlXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5BZ2dyZWdhdGUuT3JkZXJcblxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cblxuICBtaWRkbGV3YXJlIFZhbGlkYXRlXG4gIG1pZGRsZXdhcmUgQ29tbWFuZGVkLk1pZGRsZXdhcmUuVW5pcXVlbmVzc1xuXG4gIGlkZW50aWZ5KE9yZGVyLCBieTogOmlkKVxuXG4gIGRpc3BhdGNoKFtDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcl0sIHRvOiBPcmRlcilcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TdXBwb3J0Lk1pZGRsZXdhcmVzLntWYWxpZGF0ZSwgRW5yaWNofVxuICBhbGlhcyBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyfVxuXG4gIG1pZGRsZXdhcmUgRW5yaWNoXG4gIG1pZGRsZXdhcmUgVmFsaWRhdGVcbiAgbWlkZGxld2FyZSBVbmlxdWVuZXNzXG5cbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG5cbiAgZGlzcGF0Y2goW0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyXSwgdG86IE9yZGVyKVxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -377,14 +377,14 @@ Kino.RPC.eval_string(
   defmodule EsCqrsAnatomy.Router do
     use Commanded.Commands.Router
 
-    alias EsCqrsAnatomy.Support.Middlewares.Validate
-
+    alias EsCqrsAnatomy.Support.Middlewares.{Validate, Enrich}
+    alias Commanded.Middleware.Uniqueness
     alias EsCqrsAnatomy.Order.Aggregate.Order
-
     alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
 
+    middleware Enrich
     middleware Validate
-    middleware Commanded.Middleware.Uniqueness
+    middleware Uniqueness
 
     identify(Order, by: :id)
 
@@ -488,7 +488,7 @@ Kino.RPC.eval_string(
 )
 ```
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5DcmVhdGVPcmRlclxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5PcmRlckl0ZW1cblxuJUNyZWF0ZU9yZGVye1xuICBpZDogRmFrZXIuVVVJRC52NCgpLCBcbiAgb3JkZXJfbnVtYmVyOiAxMjM0NSwgXG4gIGJ1c2luZXNzX3BhcnRuZXI6IFwiaXdhbm5hYmVhbmVtYWlsXCIsXG4gIGl0ZW1zOiBbXG4gICAgJU9yZGVySXRlbXtcbiAgICAgIHByb2R1Y3RfaWQ6IEZha2VyLlVVSUQudjQoKSxcbiAgICAgIHF1YW50aXR5OiAwLFxuICAgICAgdW9tOiBcIkxUXCJcbiAgICB9XG4gIF1cbn0gXG58PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaCgpIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5DcmVhdGVPcmRlclxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5PcmRlckl0ZW1cblxuJUNyZWF0ZU9yZGVye1xuICBpZDogRmFrZXIuVVVJRC52NCgpLCBcbiAgb3JkZXJfbnVtYmVyOiAxMjM0NSwgXG4gIGJ1c2luZXNzX3BhcnRuZXI6IFwiaV93YW5uYV9iZV9hbl9lbWFpbFwiLFxuICBpdGVtczogW1xuICAgICVPcmRlckl0ZW17XG4gICAgICBwcm9kdWN0X2lkOiBcIlBlblwiLFxuICAgICAgcXVhbnRpdHk6IDAsXG4gICAgICB1b206IFwiTFRcIlxuICAgIH1cbiAgXVxufSBcbnw+IEVzQ3Fyc0FuYXRvbXkuQXBwLmRpc3BhdGNoKCkiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -504,10 +504,10 @@ Kino.RPC.eval_string(
   %CreateOrder{
     id: Faker.UUID.v4(), 
     order_number: 12345, 
-    business_partner: "iwannabeanemail",
+    business_partner: "i_wanna_be_an_email",
     items: [
       %OrderItem{
-        product_id: Faker.UUID.v4(),
+        product_id: "Pen",
         quantity: 0,
         uom: "LT"
       }
@@ -526,7 +526,7 @@ So we must avoid to have 2 orders with the same order number.
 
 How can we handle this cross aggregates rule?
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Qcm9qZWN0aW9ucy5PcmRlcnNcbmFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ3JlYXRlT3JkZXJcblxuZGVmaW1wbCBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzLlVuaXF1ZUZpZWxkcyxcbiAgZm9yOiBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyIGRvXG4gIGRlZiB1bmlxdWUoJUNyZWF0ZU9yZGVye29yZGVyX251bWJlcjogb3JkZXJfbnVtYmVyfSksXG4gICAgZG86IFtcbiAgICAgIHs6b3JkZXJfbnVtYmVyLCBcImFscmVhZHkgZXhpc3RcIiwgb3JkZXJfbnVtYmVyLFxuICAgICAgIGlnbm9yZV9jYXNlOiB0cnVlLCBpc191bmlxdWU6ICZvcmRlcl9udW1iZXJfaXNfdW5pcXVlPy80LCBvcmRlcl9udW1iZXI6IG9yZGVyX251bWJlcn1cbiAgICBdXG5cbiAgZGVmIG9yZGVyX251bWJlcl9pc191bmlxdWU/KF9maWVsZCwgdmFsdWUsIF9vd25lciwgX29wdHMpLFxuICAgIGRvOiBPcmRlcnMub3JkZXJfbnVtYmVyX2lzX3VuaXF1ZT8odmFsdWUpXG5lbmQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Qcm9qZWN0aW9ucy5PcmRlcnNcbmFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ3JlYXRlT3JkZXJcblxuZGVmaW1wbCBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzLlVuaXF1ZUZpZWxkcyxcbiAgZm9yOiBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNyZWF0ZU9yZGVyIGRvXG4gIGRlZiB1bmlxdWUoJUNyZWF0ZU9yZGVye29yZGVyX251bWJlcjogb3JkZXJfbnVtYmVyfSksXG4gICAgZG86IFtcbiAgICAgIHs6b3JkZXJfbnVtYmVyLCBcImFscmVhZHkgZXhpc3RcIiwgb3JkZXJfbnVtYmVyLFxuICAgICAgIGlnbm9yZV9jYXNlOiBmYWxzZSwgaXNfdW5pcXVlOiAmb3JkZXJfbnVtYmVyX2lzX3VuaXF1ZT8vNCwgb3JkZXJfbnVtYmVyOiBvcmRlcl9udW1iZXJ9XG4gICAgXVxuXG4gIGRlZiBvcmRlcl9udW1iZXJfaXNfdW5pcXVlPyhfZmllbGQsIHZhbHVlLCBfb3duZXIsIF9vcHRzKSxcbiAgICBkbzogT3JkZXJzLm9yZGVyX251bWJlcl9pc191bmlxdWU/KHZhbHVlKVxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -544,7 +544,7 @@ Kino.RPC.eval_string(
     def unique(%CreateOrder{order_number: order_number}),
       do: [
         {:order_number, "already exist", order_number,
-         ignore_case: true, is_unique: &order_number_is_unique?/4, order_number: order_number}
+         ignore_case: false, is_unique: &order_number_is_unique?/4, order_number: order_number}
       ]
 
     def order_number_is_unique?(_field, value, _owner, _opts),
@@ -557,7 +557,7 @@ Kino.RPC.eval_string(
 
 The first Command that arrive, check if the order number already exist into the **Projection**. If it's available, it **store the value in a cache to keep locked the value** for a give time. In this way another Command, find the order number into the cache and **the command is rejected**
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhbHJlYWR5X2V4aXN0aW5nX29yZGVyX251bWJlciIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVyc1xuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5DcmVhdGVPcmRlclxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5PcmRlckl0ZW1cblxuYWxyZWFkeV9leGlzdGluZ19vcmRlcl9udW1iZXIgPSBPcmRlcnMuZmlyc3Rfb3JkZXJfbnVtYmVyKCkgfD4gTGlzdC5maXJzdCgpXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IEZha2VyLlVVSUQudjQoKSwgXG4gIG9yZGVyX251bWJlcjogYWxyZWFkeV9leGlzdGluZ19vcmRlcl9udW1iZXIsIFxuICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICBpdGVtczogW1xuICAgICVPcmRlckl0ZW17XG4gICAgICBwcm9kdWN0X2lkOiBGYWtlci5VVUlELnY0KCksXG4gICAgICBxdWFudGl0eTogMSxcbiAgICAgIHVvbTogXCJLR1wiXG4gICAgfVxuICBdXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goKVxuXG5cblxuXG4iLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiJhbHJlYWR5X2V4aXN0aW5nX29yZGVyX251bWJlciIsImNvZGUiOiJhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVyc1xuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5DcmVhdGVPcmRlclxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5PcmRlckl0ZW1cblxuYWxyZWFkeV9leGlzdGluZ19vcmRlcl9udW1iZXIgPSBPcmRlcnMuZmlyc3Rfb3JkZXJfbnVtYmVyKCkgfD4gTGlzdC5maXJzdCgpXG5cbiVDcmVhdGVPcmRlcntcbiAgaWQ6IEZha2VyLlVVSUQudjQoKSwgXG4gIG9yZGVyX251bWJlcjogYWxyZWFkeV9leGlzdGluZ19vcmRlcl9udW1iZXIsIFxuICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICBpdGVtczogW1xuICAgICVPcmRlckl0ZW17XG4gICAgICBwcm9kdWN0X2lkOiBGYWtlci5VVUlELnY0KCksXG4gICAgICBxdWFudGl0eTogMSxcbiAgICAgIHVvbTogXCJLR1wiXG4gICAgfVxuICBdXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goKSIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -587,14 +587,98 @@ already_existing_order_number =
       ]
     } 
     |> EsCqrsAnatomy.App.dispatch()
-
-
-
-
-
     """,
     file: __ENV__.file
   )
 ```
 
 #### Command Enrichment
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5Db21tYW5kRW5yaWNobWVudFxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbnN0YW50c1xuXG5kZWZpbXBsIENvbW1hbmRFbnJpY2htZW50LCBmb3I6IENvbXBsZXRlT3JkZXIgZG9cblxuICBAYmxvY2tlZF9wcm9kdWN0X2lkIENvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKVxuXG4gIGRlZiBlbnJpY2goJUNvbXBsZXRlT3JkZXJ7fSA9IGNvbW1hbmQpIGRvXG4gICAgXG4gICAgJUNvbXBsZXRlT3JkZXJ7aWQ6IGlkfSA9IGNvbW1hbmRcblxuICAgIGNvbW1hbmQgPSAlQ29tcGxldGVPcmRlcntcbiAgICAgIGNvbW1hbmRcbiAgICAgIHwgYmxvY2tlZF9wcm9kdWN0X2lkczogbG9va3VwX2V4dGVybmFsX2RhdGEoaWQpXG4gICAgfVxuICAgIHs6b2ssIGNvbW1hbmR9XG4gIGVuZFxuXG4gIGRlZnAgbG9va3VwX2V4dGVybmFsX2RhdGEoQGJsb2NrZWRfcHJvZHVjdF9pZCksIGRvOiBbIEBibG9ja2VkX3Byb2R1Y3RfaWRdXG4gIGRlZnAgbG9va3VwX2V4dGVybmFsX2RhdGEoXyksIGRvOiBbXVxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.CommandEnrichment
+  alias EsCqrsAnatomy.Order.Commands.CompleteOrder
+  alias EsCqrsAnatomy.Order.Constants
+
+  defimpl CommandEnrichment, for: CompleteOrder do
+
+    @blocked_product_id Constants.blocked_product_id()
+
+    def enrich(%CompleteOrder{} = command) do
+      
+      %CompleteOrder{id: id} = command
+
+      command = %CompleteOrder{
+        command
+        | blocked_product_ids: lookup_external_data(id)
+      }
+      {:ok, command}
+    end
+
+    defp lookup_external_data(@blocked_product_id), do: [ @blocked_product_id]
+    defp lookup_external_data(_), do: []
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy57Q3JlYXRlT3JkZXIsIENvbXBsZXRlT3JkZXJ9XG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLk9yZGVySXRlbVxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db25zdGFudHNcblxuYWdncmVnYXRlX3V1aWQ9IFxuICAlQ3JlYXRlT3JkZXJ7XG4gICAgaWQ6IEZha2VyLlVVSUQudjQoKSwgXG4gICAgb3JkZXJfbnVtYmVyOiBGYWtlci5TdHJpbmcuYmFzZTY0KDUpLCBcbiAgICBidXNpbmVzc19wYXJ0bmVyOiBGYWtlci5JbnRlcm5ldC5lbWFpbCgpLFxuICAgIGl0ZW1zOiBbXG4gICAgICAlT3JkZXJJdGVte1xuICAgICAgICBwcm9kdWN0X2lkOiBDb25zdGFudHMuYmxvY2tlZF9wcm9kdWN0X2lkKCksXG4gICAgICAgIHF1YW50aXR5OiAxLFxuICAgICAgICB1b206IFwiS0dcIlxuICAgICAgfVxuICAgIF1cbiAgfSBcbiAgfD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goaW5jbHVkZV9leGVjdXRpb25fcmVzdWx0OiB0cnVlKVxuICB8PiBlbGVtKDEpXG4gIHw+IE1hcC5nZXQoOmFnZ3JlZ2F0ZV91dWlkKVxuXG4lQ29tcGxldGVPcmRlcntcbiAgaWQ6IGFnZ3JlZ2F0ZV91dWlkXG59IFxufD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goKSIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
+  alias EsCqrsAnatomy.Order.Commands.OrderItem
+  alias EsCqrsAnatomy.Order.Constants
+
+  aggregate_uuid= 
+    %CreateOrder{
+      id: Faker.UUID.v4(), 
+      order_number: Faker.String.base64(5), 
+      business_partner: Faker.Internet.email(),
+      items: [
+        %OrderItem{
+          product_id: Constants.blocked_product_id(),
+          quantity: 1,
+          uom: "KG"
+        }
+      ]
+    } 
+    |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
+    |> elem(1)
+    |> Map.get(:aggregate_uuid)
+
+  %CompleteOrder{
+    id: aggregate_uuid
+  } 
+  |> EsCqrsAnatomy.App.dispatch()
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiRXNDcXJzQW5hdG9teS5PcmRlci5Db25zdGFudHMuYmxvY2tlZF9wcm9kdWN0X2lkKCkiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(node, ~S"EsCqrsAnatomy.Order.Constants.blocked_product_id()",
+  file: __ENV__.file
+)
+```

@@ -4,12 +4,15 @@ defmodule EsCqrsAnatomy.Order.Projections.Orders do
   import Ecto.Query
 
   alias EsCqrsAnatomy.Repo
+  alias EsCqrsAnatomy.Order.Projections.OrderItems
 
   @primary_key {:id, :string, autogenerate: false}
   schema "orders" do
     field(:order_number, :string)
     field(:business_partner, :string)
     field(:status, :string)
+
+    has_many(:items, OrderItems, foreign_key: :order_id)
 
     timestamps(type: :utc_datetime)
   end
@@ -23,6 +26,12 @@ defmodule EsCqrsAnatomy.Order.Projections.Orders do
   end
 
   def first_order_number() do
+    from(o in __MODULE__, select: o.order_number, order_by: [o.inserted_at])
+    |> limit(1)
+    |> Repo.all()
+  end
+
+  def order_product_ids() do
     from(o in __MODULE__, select: o.order_number, order_by: [o.inserted_at])
     |> limit(1)
     |> Repo.all()

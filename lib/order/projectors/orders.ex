@@ -12,6 +12,7 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
   }
 
   alias EsCqrsAnatomy.Order.Projections.Orders
+  alias EsCqrsAnatomy.Order.Projections.OrderItems
   alias EsCqrsAnatomy.Order.Aggregate.OrderStatus
 
   project(
@@ -25,7 +26,18 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
           id: event.id,
           order_number: event.order_number,
           business_partner: event.business_partner,
-          status: OrderStatus.open()
+          status: OrderStatus.open(),
+          items:
+            event.items
+            |> Enum.map(
+              &%OrderItems{
+                id: UUID.uuid4(),
+                order_id: event.id,
+                product_id: &1.product_id,
+                quantity: &1.quantity,
+                uom: &1.uom
+              }
+            )
         }
       )
     end

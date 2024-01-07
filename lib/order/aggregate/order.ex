@@ -16,7 +16,8 @@ defmodule EsCqrsAnatomy.Order.Aggregate.Order do
     %OrderCreated{
       id: command.id,
       order_number: command.order_number,
-      business_partner: command.business_partner
+      business_partner: command.business_partner,
+      items: command.items
     }
   end
 
@@ -24,6 +25,11 @@ defmodule EsCqrsAnatomy.Order.Aggregate.Order do
 
   def execute(%__MODULE__{status: "COMPLETED"}, %CompleteOrder{}),
     do: {:error, "Order already completed"}
+
+  def execute(%__MODULE__{}, %CompleteOrder{blocked_product_ids: blocked_product_ids})
+      when length(blocked_product_ids) > 0 do
+    {:error, "Order contains blocked products: #{IO.inspect(blocked_product_ids)}"}
+  end
 
   def execute(%__MODULE__{id: id}, %CompleteOrder{}) do
     %OrderCompleted{
