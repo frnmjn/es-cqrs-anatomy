@@ -65,11 +65,15 @@ Event Storming is a **collaborative workshop technique** for understanding and d
 
 ## Yet Another ERP
 
-![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/01-events.png)
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-events.png)
 
 <!-- livebook:{"break_markdown":true} -->
 
-OTHER STEPS OF EVENT STORMING
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-events.png)
+
+<!-- livebook:{"break_markdown":true} -->
+
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-complete.png)
 
 ## Play with Orders
 
