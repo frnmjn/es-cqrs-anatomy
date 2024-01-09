@@ -8,7 +8,8 @@ defmodule EsCqrsAnatomy.EventHandlerSupervisor do
   def init(_args) do
     Supervisor.init(
       [
-        EsCqrsAnatomy.Order.Projectors.Orders
+        EsCqrsAnatomy.Order.Projectors.Orders,
+        EsCqrsAnatomy.Shipment.Policies.Shipment
       ],
       strategy: :one_for_one
     )
