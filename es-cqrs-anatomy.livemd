@@ -602,7 +602,7 @@ already_existing_order_number =
 
 #### Command Enrichment
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiYWxpYXMgRXNDcXJzQW5hdG9teS5Db21tYW5kRW5yaWNobWVudFxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVySXRlbVxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db25zdGFudHNcblxuZGVmaW1wbCBDb21tYW5kRW5yaWNobWVudCwgZm9yOiBDb21wbGV0ZU9yZGVyIGRvXG4gIFxuICBkZWYgZW5yaWNoKCVDb21wbGV0ZU9yZGVye30gPSBjb21tYW5kKSBkb1xuICAgICVDb21wbGV0ZU9yZGVye2lkOiBpZH0gPSBjb21tYW5kXG5cbiAgICBwcm9kdWN0c19pbl9vcmRlciA9IE9yZGVySXRlbS5wcm9kdWN0c19pbl9vcmRlcihpZClcblxuICAgIGNvbW1hbmQgPSAlQ29tcGxldGVPcmRlcntcbiAgICAgIGNvbW1hbmRcbiAgICAgIHwgYmxvY2tlZF9wcm9kdWN0X2lkczogbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpXG4gICAgfVxuICAgIFxuICAgIHs6b2ssIGNvbW1hbmR9XG4gIGVuZFxuXG4gIGRlZnAgbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpIGRvXG4gICAgY2FzZSBFbnVtLm1lbWJlcj8ocHJvZHVjdHNfaW5fb3JkZXIsIENvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKSkgZG9cbiAgICAgIHRydWUgLT4gW0NvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKV1cbiAgICAgIF8gLT4gW11cbiAgICBlbmRcbiAgZW5kXG5lbmRcbiIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ29tcGxldGVPcmRlciBkb1xuICB1c2UgVHlwZWRTdHJ1Y3RcbiAgdXNlIFZleC5TdHJ1Y3RcblxuICBAZGVyaXZlIEphc29uLkVuY29kZXJcbiAgdHlwZWRzdHJ1Y3QgZW5mb3JjZTogdHJ1ZSBkb1xuICAgIGZpZWxkKDppZCwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6YmxvY2tlZF9wcm9kdWN0X2lkcywgbGlzdChTdHJpbmcudCgpKSwgZW5mb3JjZTogZmFsc2UpXG4gIGVuZFxuXG4gIHZhbGlkYXRlcyg6aWQsIHByZXNlbmNlOiB0cnVlLCB1dWlkOiB0cnVlKVxuZW5kXG5cblxuYWxpYXMgRXNDcXJzQW5hdG9teS5Db21tYW5kRW5yaWNobWVudFxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVySXRlbVxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db25zdGFudHNcblxuZGVmaW1wbCBDb21tYW5kRW5yaWNobWVudCwgZm9yOiBDb21wbGV0ZU9yZGVyIGRvXG4gIFxuICBkZWYgZW5yaWNoKCVDb21wbGV0ZU9yZGVye30gPSBjb21tYW5kKSBkb1xuICAgICVDb21wbGV0ZU9yZGVye2lkOiBpZH0gPSBjb21tYW5kXG5cbiAgICBwcm9kdWN0c19pbl9vcmRlciA9IE9yZGVySXRlbS5wcm9kdWN0c19pbl9vcmRlcihpZClcblxuICAgIGNvbW1hbmQgPSAlQ29tcGxldGVPcmRlcntcbiAgICAgIGNvbW1hbmRcbiAgICAgIHwgYmxvY2tlZF9wcm9kdWN0X2lkczogbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpXG4gICAgfVxuICAgIFxuICAgIHs6b2ssIGNvbW1hbmR9XG4gIGVuZFxuXG4gIGRlZnAgbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpIGRvXG4gICAgY2FzZSBFbnVtLm1lbWJlcj8ocHJvZHVjdHNfaW5fb3JkZXIsIENvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKSkgZG9cbiAgICAgIHRydWUgLT4gW0NvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKV1cbiAgICAgIF8gLT4gW11cbiAgICBlbmRcbiAgZW5kXG5lbmRcbiIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -612,6 +612,20 @@ Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
 Kino.RPC.eval_string(
   node,
   ~S"""
+  defmodule EsCqrsAnatomy.Order.Commands.CompleteOrder do
+    use TypedStruct
+    use Vex.Struct
+
+    @derive Jason.Encoder
+    typedstruct enforce: true do
+      field(:id, String.t())
+      field(:blocked_product_ids, list(String.t()), enforce: false)
+    end
+
+    validates(:id, presence: true, uuid: true)
+  end
+
+
   alias EsCqrsAnatomy.CommandEnrichment
   alias EsCqrsAnatomy.Order.Commands.CompleteOrder
   alias EsCqrsAnatomy.Order.Projections.OrderItem
@@ -776,6 +790,8 @@ Kino.RPC.eval_string(
 
 ## Event Handlers
 
+![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-policy.jpg)
+
 <!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TdXBwb3J0Lk1pZGRsZXdhcmVzLntWYWxpZGF0ZSwgRW5yaWNofVxuICBhbGlhcyBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyfVxuICBhbGlhcyBFc0NxcnNBbmF0b215LlNoaXBtZW50LkFnZ3JlZ2F0ZS5TaGlwbWVudFxuICBhbGlhcyBFc0NxcnNBbmF0b215LlNoaXBtZW50LkNvbW1hbmRzLntDcmVhdGVTaGlwbWVudCwgQ29tcGxldGVTaGlwbWVudH1cblxuICBtaWRkbGV3YXJlIEVucmljaFxuICBtaWRkbGV3YXJlIFZhbGlkYXRlXG4gIG1pZGRsZXdhcmUgVW5pcXVlbmVzc1xuXG4gIGlkZW50aWZ5KE9yZGVyLCBieTogOmlkKVxuICBpZGVudGlmeShTaGlwbWVudCwgYnk6IDppZClcblxuICBkaXNwYXRjaChbQ3JlYXRlT3JkZXIsIENvbXBsZXRlT3JkZXJdLCB0bzogT3JkZXIpXG4gIGRpc3BhdGNoKFtDcmVhdGVTaGlwbWVudCwgQ29tcGxldGVTaGlwbWVudF0sIHRvOiBTaGlwbWVudClcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
@@ -872,6 +888,129 @@ result5 =
     [order_id]
   )
 ```
+
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuU2hpcG1lbnQuUG9saWNpZXMuU2hpcG1lbnQgZG9cbiAgdXNlIENvbW1hbmRlZC5FdmVudC5IYW5kbGVyLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICBuYW1lOiBcInNoaXBtZW50XCIsXG4gICAgc3RhcnRfZnJvbTogOmN1cnJlbnRcblxuICByZXF1aXJlIExvZ2dlclxuXG4gIGFsaWFzIENvbW1hbmRlZC5FdmVudC5GYWlsdXJlQ29udGV4dFxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkV2ZW50cy5PcmRlckNvbXBsZXRlZFxuICBhbGlhcyBFc0NxcnNBbmF0b215LlNoaXBtZW50LkNvbW1hbmRzLkNyZWF0ZVNoaXBtZW50XG5cbiAgZGVmIGhhbmRsZSglT3JkZXJDb21wbGV0ZWR7aWQ6IGlkfSwgJXtcbiAgICAgICAgZXZlbnRfaWQ6IGNhdXNhdGlvbl9pZCxcbiAgICAgICAgY29ycmVsYXRpb25faWQ6IGNvcnJlbGF0aW9uX2lkXG4gICAgICB9KSBkb1xuICAgICVDcmVhdGVTaGlwbWVudHtcbiAgICAgIGlkOiBVVUlELnV1aWQ0KCksXG4gICAgICBvcmRlcl9pZDogaWRcbiAgICB9XG4gICAgfD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goY2F1c2F0aW9uX2lkOiBjYXVzYXRpb25faWQsIGNvcnJlbGF0aW9uX2lkOiBjb3JyZWxhdGlvbl9pZClcbiAgZW5kXG5cbiAgZGVmIGVycm9yKHs6ZXJyb3IsIHJlYXNvbn0sIGV2ZW50LCAlRmFpbHVyZUNvbnRleHR7Y29udGV4dDogY29udGV4dH0pIGRvXG4gICAgY29udGV4dCA9IHJlY29yZF9mYWlsdXJlKGNvbnRleHQpXG5cbiAgICBjYXNlIE1hcC5nZXQoY29udGV4dCwgOmZhaWx1cmVzKSBkb1xuICAgICAgdG9vX21hbnkgd2hlbiB0b29fbWFueSA+PSAzIC0+XG4gICAgICAgICMgc2tpcCBiYWQgZXZlbnQgYWZ0ZXIgdGhpcmQgZmFpbHVyZVxuICAgICAgICBMb2dnZXIuZXJyb3IoXG4gICAgICAgICAgXCIje19fTU9EVUxFX199IFNraXBwaW5nIGJhZCBldmVudCwgdG9vIG1hbnkgZmFpbHVyZXM6ICN7aW5zcGVjdChldmVudCl9IGZvciByZWFzb246ICN7aW5zcGVjdChyZWFzb24pfVwiXG4gICAgICAgIClcblxuICAgICAgICA6c2tpcFxuXG4gICAgICBfIC0+XG4gICAgICAgICMgcmV0cnkgZXZlbnQsIGZhaWx1cmUgY291bnQgaXMgaW5jbHVkZWQgaW4gY29udGV4dCBtYXBcbiAgICAgICAgezpyZXRyeSwgY29udGV4dH1cbiAgICBlbmRcbiAgZW5kXG5cbiAgZGVmcCByZWNvcmRfZmFpbHVyZShjb250ZXh0KSBkb1xuICAgIE1hcC51cGRhdGUoY29udGV4dCwgOmZhaWx1cmVzLCAxLCBmbiBmYWlsdXJlcyAtPiBmYWlsdXJlcyArIDEgZW5kKVxuICBlbmRcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Kino.RPC
+node = :escqrsanatomy@escqrsanatomy
+Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
+
+Kino.RPC.eval_string(
+  node,
+  ~S"""
+  defmodule EsCqrsAnatomy.Shipment.Policies.Shipment do
+    use Commanded.Event.Handler,
+      application: EsCqrsAnatomy.App,
+      name: "shipment",
+      start_from: :current
+
+    require Logger
+
+    alias Commanded.Event.FailureContext
+    alias EsCqrsAnatomy.Order.Events.OrderCompleted
+    alias EsCqrsAnatomy.Shipment.Commands.CreateShipment
+
+    def handle(%OrderCompleted{id: id}, %{
+          event_id: causation_id,
+          correlation_id: correlation_id
+        }) do
+      %CreateShipment{
+        id: UUID.uuid4(),
+        order_id: id
+      }
+      |> EsCqrsAnatomy.App.dispatch(causation_id: causation_id, correlation_id: correlation_id)
+    end
+
+    def error({:error, reason}, event, %FailureContext{context: context}) do
+      context = record_failure(context)
+
+      case Map.get(context, :failures) do
+        too_many when too_many >= 3 ->
+          # skip bad event after third failure
+          Logger.error(
+            "#{__MODULE__} Skipping bad event, too many failures: #{inspect(event)} for reason: #{inspect(reason)}"
+          )
+
+          :skip
+
+        _ ->
+          # retry event, failure count is included in context map
+          {:retry, context}
+      end
+    end
+
+    defp record_failure(context) do
+      Map.update(context, :failures, 1, fn failures -> failures + 1 end)
+    end
+  end
+  """,
+  file: __ENV__.file
+)
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm5fZXMifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcblx0c3Vic2NyaXB0aW9uX25hbWUsXG5cdHN0cmVhbV91dWlkLFxuXHRsYXN0X3NlZW4gXG5GUk9NIHN1YnNjcmlwdGlvbnNcbldIRVJFIHN1YnNjcmlwdGlvbl9uYW1lICA9ICdzaGlwbWVudCciLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ2IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result6 =
+  Postgrex.query!(
+    conn_es,
+    """
+    SELECT 
+    	subscription_name,
+    	stream_uuid,
+    	last_seen 
+    FROM subscriptions
+    WHERE subscription_name  = 'shipment'
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm5fZXMifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0NyIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result7 =
+  Postgrex.query!(
+    conn_es,
+    """
+    SELECT 
+      stream_id,
+      stream_uuid,
+      stream_version 
+    FROM streams 
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm5fZXMifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCAgXG5cdGV2ZW50X2lkOjp0ZXh0LFxuXHRzdHJlYW1faWQsXG5cdHN0cmVhbV92ZXJzaW9uLFxuXHRvcmlnaW5hbF9zdHJlYW1faWQsXG5cdG9yaWdpbmFsX3N0cmVhbV92ZXJzaW9uIFxuRlJPTSBzdHJlYW1fZXZlbnRzXG5PUkRFUiBCWSBcblx0b3JpZ2luYWxfc3RyZWFtX2lkIEFTQywgXG5cdG9yaWdpbmFsX3N0cmVhbV92ZXJzaW9uIEFTQyxcblx0c3RyZWFtX3ZlcnNpb24gQVNDLCBcblx0c3RyZWFtX2lkIERFU0MiLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQ4IiwidGltZW91dCI6bnVsbH0","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result8 =
+  Postgrex.query!(
+    conn_es,
+    """
+    SELECT  
+    	event_id::text,
+    	stream_id,
+    	stream_version,
+    	original_stream_id,
+    	original_stream_version 
+    FROM stream_events
+    ORDER BY 
+    	original_stream_id ASC, 
+    	original_stream_version ASC,
+    	stream_version ASC, 
+    	stream_id DESC
+    """,
+    []
+  )
+```
+
+MAYBE STREAM DIAGRA
+
+<!-- livebook:{"break_markdown":true} -->
 
 ### Projection
 
