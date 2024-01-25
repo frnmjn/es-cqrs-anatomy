@@ -5,7 +5,7 @@ defmodule EsCqrsAnatomy.Order.Projectors.Orders do
     repo: EsCqrsAnatomy.Repo,
     name: "orders"
 
-  use EsCqrsAnatomy.Policies.BaseEventHandler
+  use EsCqrsAnatomy.Base.EventHandler
 
   alias EsCqrsAnatomy.Order.Aggregate.OrderStatus
   alias EsCqrsAnatomy.Order.Events.OrderCompleted

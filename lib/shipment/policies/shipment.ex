@@ -5,7 +5,7 @@ defmodule EsCqrsAnatomy.Shipment.Policies.Shipment do
     name: "shipment",
     start_from: :current
 
-  use EsCqrsAnatomy.Policies.BaseEventHandler
+  use EsCqrsAnatomy.Base.EventHandler
 
   alias EsCqrsAnatomy.Order.Events.OrderCompleted
   alias EsCqrsAnatomy.Shipment.Commands.CreateShipment

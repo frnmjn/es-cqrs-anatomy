@@ -1,6 +1,6 @@
 defmodule EsCqrsAnatomy.Order.Events.OrderCreated do
   @moduledoc false
-  use EsCqrsAnatomy.BaseStruct
+  use EsCqrsAnatomy.Base.Struct
 
   alias EsCqrsAnatomy.Order.Commands.OrderItem
 

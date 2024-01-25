@@ -1,4 +1,4 @@
-defmodule EsCqrsAnatomy.Validators.ListOfStructs do
+defmodule EsCqrsAnatomy.Validator.ListOfStructs do
   @moduledoc false
   use Vex.Validator
 

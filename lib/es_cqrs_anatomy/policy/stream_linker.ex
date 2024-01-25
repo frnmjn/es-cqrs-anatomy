@@ -5,7 +5,7 @@ defmodule EsCqrsAnatomy.Policies.StreamLinker do
     name: "stream_linker",
     start_from: :origin
 
-  use EsCqrsAnatomy.Policies.BaseEventHandler
+  use EsCqrsAnatomy.Base.EventHandler
 
   alias EsCqrsAnatomy.Order.Events.OrderCompleted
   alias EsCqrsAnatomy.Order.Events.OrderCreated

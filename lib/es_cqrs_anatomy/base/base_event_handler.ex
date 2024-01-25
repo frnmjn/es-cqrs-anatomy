@@ -1,4 +1,4 @@
-defmodule EsCqrsAnatomy.Policies.BaseEventHandler do
+defmodule EsCqrsAnatomy.Base.EventHandler do
   @moduledoc false
   defmacro __using__(_opts) do
     quote do

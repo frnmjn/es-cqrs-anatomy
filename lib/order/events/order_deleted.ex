@@ -1,6 +1,6 @@
 defmodule EsCqrsAnatomy.Order.Events.OrderDeleted do
   @moduledoc false
-  use EsCqrsAnatomy.BaseStruct
+  use EsCqrsAnatomy.Base.Struct
 
   @derive Jason.Encoder
   typedstruct enforce: true do

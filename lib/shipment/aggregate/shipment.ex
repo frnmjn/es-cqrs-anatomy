@@ -1,6 +1,6 @@
 defmodule EsCqrsAnatomy.Shipment.Aggregate.Shipment do
   @moduledoc false
-  use EsCqrsAnatomy.BaseStruct
+  use EsCqrsAnatomy.Base.Struct
 
   alias EsCqrsAnatomy.Shipment.Aggregate.ShipmentStatus
   alias EsCqrsAnatomy.Shipment.Commands.CompleteShipment

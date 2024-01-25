@@ -1,4 +1,4 @@
-defmodule EsCqrsAnatomy.BaseStruct do
+defmodule EsCqrsAnatomy.Base.Struct do
   @moduledoc false
   defmacro __using__(_opts) do
     quote do
