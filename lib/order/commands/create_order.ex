@@ -16,14 +16,4 @@ defmodule EsCqrsAnatomy.Order.Commands.CreateOrder do
   validates(:order_number, presence: true, string: true)
   validates(:business_partner, presence: true, email: true)
   validates(:items, presence: true, list_of_structs: true)
-
-  def build(input) do
-    with {:ok, command} <- {:ok, __MODULE__.new(input)},
-         {:errors, []} <- {:errors, Vex.errors(command)} do
-      command
-    else
-      {:errors, errors} -> {:error, errors}
-      _ -> {:error, "Error during the struct construction with #{input}"}
-    end
-  end
 end

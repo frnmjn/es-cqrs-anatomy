@@ -2,7 +2,7 @@ defmodule EsCqrsAnatomy.Order.Commands.CreateOrderTest do
   use ExUnit.Case
 
   import Access
-  import EsCqrsAnatomy.Support.OrderFactory
+  import EsCqrsAnatomy.OrderFactory
 
   test "build a createOrder command" do
     assert true ==

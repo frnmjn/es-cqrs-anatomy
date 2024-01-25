@@ -8,10 +8,10 @@ defmodule EsCqrsAnatomy.Router do
   alias EsCqrsAnatomy.Shipment.Aggregate.Shipment
   alias EsCqrsAnatomy.Shipment.Commands.CompleteShipment
   alias EsCqrsAnatomy.Shipment.Commands.CreateShipment
-  alias EsCqrsAnatomy.Support.Middlewares.Enrich
-  alias EsCqrsAnatomy.Support.Middlewares.Validate
+  alias EsCqrsAnatomy.Middleware.Enrichment
+  alias EsCqrsAnatomy.Middleware.Validate
 
-  middleware(Enrich)
+  middleware(Enrichment)
   middleware(Validate)
   middleware(Uniqueness)
 

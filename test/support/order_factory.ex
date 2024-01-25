@@ -1,4 +1,4 @@
-defmodule EsCqrsAnatomy.Support.OrderFactory do
+defmodule EsCqrsAnatomy.OrderFactory do
   @moduledoc false
   use ExMachina
 

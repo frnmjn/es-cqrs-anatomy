@@ -1,4 +1,4 @@
-defmodule EsCqrsAnatomy.Support.Middlewares.Validate do
+defmodule EsCqrsAnatomy.Middleware.Validate do
   @moduledoc false
   @behaviour Commanded.Middleware
 

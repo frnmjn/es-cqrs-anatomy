@@ -49,12 +49,12 @@ graph LR;
   Q(Query) -->|Query to| PN([Projection]) -->|Retrive from| RS[(Read Store)];
   PR -->|Write to| RS
 
-  
+
 ```
 
 <!-- livebook:{"break_markdown":true} -->
 
-A Command is routed to an Aggregate, that emit an Event. Then the event is stored into the Event Store. 
+A Command is routed to an Aggregate, that emit an Event. Then the event is stored into the Event Store.
 The Projector **subscribe** some events and build one or more **table** into the Read Store.
 The Projection **retrieve data** from Read Store based on a Query
 
@@ -106,8 +106,8 @@ aggregate_uuid =
     alias EsCqrsAnatomy.Order.Commands.OrderItem
 
     %CreateOrder{
-      id: Faker.UUID.v4(), 
-      order_number: Faker.String.base64(5), 
+      id: Faker.UUID.v4(),
+      order_number: Faker.String.base64(5),
       business_partner: Faker.Internet.email(),
       items: [
         %OrderItem{
@@ -116,7 +116,7 @@ aggregate_uuid =
           uom: "KG"
         }
       ]
-    } 
+    }
     |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
     |> elem(1)
     |> Map.get(:aggregate_uuid)
@@ -152,11 +152,11 @@ result_events =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       event_id::text,
       event_type,
       data
-    FROM events 
+    FROM events
     WHERE encode(data, 'escape')::json ->> 'id' = $1
     """,
     [aggregate_uuid]
@@ -172,11 +172,11 @@ result =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       stream_id,
       stream_uuid,
-      stream_version 
-    FROM streams 
+      stream_version
+    FROM streams
     WHERE stream_uuid = $1
     """,
     [aggregate_uuid]
@@ -199,7 +199,7 @@ Kino.RPC.eval_string(
 
   %CompleteOrder{
     id: aggregate_uuid
-  } 
+  }
   |> EsCqrsAnatomy.App.dispatch()
   """,
   file: __ENV__.file
@@ -215,11 +215,11 @@ stream =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       stream_id,
       stream_uuid,
-      stream_version 
-    FROM streams 
+      stream_version
+    FROM streams
     WHERE stream_uuid = $1
     """,
     [aggregate_uuid]
@@ -276,7 +276,7 @@ result3 =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       e.event_id::text,
       event_type,
       data
@@ -317,11 +317,11 @@ Kino.RPC.eval_string(
     alias EsCqrsAnatomy.Order.Aggregate.Order
 
     alias EsCqrsAnatomy.Order.Commands.{CompleteOrder}
-    
+
     identify(Order, by: :id)
 
     dispatch([CompleteOrder], to: Order)
-    
+
   end
   """,
   file: __ENV__.file
@@ -343,8 +343,8 @@ command_result =
     alias EsCqrsAnatomy.Order.Commands.OrderItem
 
     %CreateOrder{
-      id: Faker.UUID.v4(), 
-      order_number: Faker.String.base64(5), 
+      id: Faker.UUID.v4(),
+      order_number: Faker.String.base64(5),
       business_partner: Faker.Internet.email(),
       items: [
         %OrderItem{
@@ -353,7 +353,7 @@ command_result =
           uom: "KG"
         }
       ]
-    } 
+    }
     |> EsCqrsAnatomy.App.dispatch()
     """,
     file: __ENV__.file
@@ -368,9 +368,9 @@ Cool! The Command is not registered to any Aggregate
 
 Middlewares are component used to perform the follow tasks:
 
-* Command Validation (static and dynamic)
-* Uniqueness Check
-* Command Enrichment
+- Command Validation (static and dynamic)
+- Uniqueness Check
+- Command Enrichment
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -389,7 +389,7 @@ Kino.RPC.eval_string(
   defmodule EsCqrsAnatomy.Router do
     use Commanded.Commands.Router
 
-    alias EsCqrsAnatomy.Support.Middlewares.{Validate, Enrich}
+    alias EsCqrsAnatomy.Middleware.{Validate, Enrich}
     alias Commanded.Middleware.Uniqueness
     alias EsCqrsAnatomy.Order.Aggregate.Order
     alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
@@ -479,7 +479,7 @@ Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
 Kino.RPC.eval_string(
   node,
   ~S"""
-  defmodule EsCqrsAnatomy.Support.Validators.Email do
+  defmodule EsCqrsAnatomy.Validators.Email do
     use Vex.Validator
 
     def validate(value, _options) when is_binary(value) do
@@ -514,8 +514,8 @@ Kino.RPC.eval_string(
   alias EsCqrsAnatomy.Order.Commands.OrderItem
 
   %CreateOrder{
-    id: Faker.UUID.v4(), 
-    order_number: 12345, 
+    id: Faker.UUID.v4(),
+    order_number: 12345,
     business_partner: "i_wanna_be_an_email",
     items: [
       %OrderItem{
@@ -524,7 +524,7 @@ Kino.RPC.eval_string(
         uom: "LT"
       }
     ]
-  } 
+  }
   |> EsCqrsAnatomy.App.dispatch()
   """,
   file: __ENV__.file
@@ -587,8 +587,8 @@ already_existing_order_number =
     already_existing_order_number = Order.first_order_number() |> List.first()
 
     %CreateOrder{
-      id: Faker.UUID.v4(), 
-      order_number: already_existing_order_number, 
+      id: Faker.UUID.v4(),
+      order_number: already_existing_order_number,
       business_partner: Faker.Internet.email(),
       items: [
         %OrderItem{
@@ -597,7 +597,7 @@ already_existing_order_number =
           uom: "KG"
         }
       ]
-    } 
+    }
     |> EsCqrsAnatomy.App.dispatch()
     """,
     file: __ENV__.file
@@ -630,13 +630,13 @@ Kino.RPC.eval_string(
   end
 
 
-  alias EsCqrsAnatomy.CommandEnrichment
+  alias EsCqrsAnatomy.Enrichment
   alias EsCqrsAnatomy.Order.Commands.CompleteOrder
   alias EsCqrsAnatomy.Order.Projections.OrderItem
   alias EsCqrsAnatomy.Order.Constants
 
-  defimpl CommandEnrichment, for: CompleteOrder do
-    
+  defimpl Enrichment, for: CompleteOrder do
+
     def enrich(%CompleteOrder{} = command) do
       %CompleteOrder{id: id} = command
 
@@ -646,7 +646,7 @@ Kino.RPC.eval_string(
         command
         | blocked_product_ids: lookup_external_data(products_in_order)
       }
-      
+
       {:ok, command}
     end
 
@@ -678,10 +678,10 @@ order_id_to_block =
     alias EsCqrsAnatomy.Order.Commands.OrderItem
     alias EsCqrsAnatomy.Order.Constants
 
-    order_id_to_block = 
+    order_id_to_block =
       %CreateOrder{
-        id: Faker.UUID.v4(), 
-        order_number: Faker.String.base64(5), 
+        id: Faker.UUID.v4(),
+        order_number: Faker.String.base64(5),
         business_partner: Faker.Internet.email(),
         items: [
           %OrderItem{
@@ -690,7 +690,7 @@ order_id_to_block =
             uom: "KG"
           }
         ]
-      } 
+      }
       |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
       |> elem(1)
       |> Map.get(:aggregate_uuid)
@@ -714,7 +714,7 @@ Kino.RPC.eval_string(
 
   %CompleteOrder{
     id: order_id_to_block
-  } 
+  }
   |> EsCqrsAnatomy.App.dispatch()
   """,
   file: __ENV__.file
@@ -814,7 +814,7 @@ Kino.RPC.eval_string(
   defmodule EsCqrsAnatomy.Router do
     use Commanded.Commands.Router
 
-    alias EsCqrsAnatomy.Support.Middlewares.{Validate, Enrich}
+    alias EsCqrsAnatomy.Middleware.{Validate, Enrich}
     alias Commanded.Middleware.Uniqueness
     alias EsCqrsAnatomy.Order.Aggregate.Order
     alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
@@ -851,7 +851,7 @@ Kino.RPC.eval_string(
       application: EsCqrsAnatomy.App,
       name: "shipment",
       start_from: :current
-      
+
 
     require Logger
 
@@ -959,10 +959,10 @@ order_id =
     alias EsCqrsAnatomy.Order.Commands.OrderItem
     alias EsCqrsAnatomy.Order.Constants
 
-    order_id = 
+    order_id =
       %CreateOrder{
-        id: Faker.UUID.v4(), 
-        order_number: Faker.String.base64(5), 
+        id: Faker.UUID.v4(),
+        order_number: Faker.String.base64(5),
         business_partner: Faker.Internet.email(),
         items: [
           %OrderItem{
@@ -971,14 +971,14 @@ order_id =
             uom: "KG"
           }
         ]
-      } 
+      }
       |> EsCqrsAnatomy.App.dispatch(include_execution_result: true)
       |> elem(1)
       |> Map.get(:aggregate_uuid)
 
     %CompleteOrder{
       id: order_id
-    } 
+    }
     |> EsCqrsAnatomy.App.dispatch()
 
     order_id
@@ -994,12 +994,12 @@ result5 =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       event_id::text,
       event_type,
       data
-    FROM events 
-    WHERE event_type = 'Shipment.ShipmentCreated' 
+    FROM events
+    WHERE event_type = 'Shipment.ShipmentCreated'
     AND encode(data, 'escape')::json ->> 'order_id' = $1
     """,
     [order_id]
@@ -1013,10 +1013,10 @@ result6 =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
     	subscription_name,
     	stream_uuid,
-    	last_seen 
+    	last_seen
     FROM subscriptions
     WHERE subscription_name  = 'shipment'
     """,
@@ -1031,11 +1031,11 @@ result7 =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       stream_id,
       stream_uuid,
-      stream_version 
-    FROM streams 
+      stream_version
+    FROM streams
     """,
     []
   )
@@ -1048,19 +1048,19 @@ result8 =
   Postgrex.query!(
     conn,
     """
-    SELECT  
+    SELECT
     	e.event_type,
     	se.stream_id,
     	se.stream_version,
     	se.original_stream_id,
-    	se.original_stream_version 
+    	se.original_stream_version
     FROM stream_events se
       JOIN events e
     		ON se.event_id = e.event_id
-    ORDER BY 
-    	se.original_stream_id ASC, 
+    ORDER BY
+    	se.original_stream_id ASC,
     	se.original_stream_version ASC,
-    	se.stream_version ASC, 
+    	se.stream_version ASC,
     	se.stream_id DESC
     """,
     []
@@ -1209,18 +1209,18 @@ result9 =
     conn,
     """
     SELECT
-      o.order_number, 
-      o.business_partner, 
-      o.status, 
-      oi.product_id, 
-      oi.quantity, 
-      oi.uom 
-    FROM orders o 
-    	JOIN order_items oi 
-    		ON o.id = oi.order_id 
-    ORDER BY 
-      o.order_number, 
-      oi.quantity 
+      o.order_number,
+      o.business_partner,
+      o.status,
+      oi.product_id,
+      oi.quantity,
+      oi.uom
+    FROM orders o
+    	JOIN order_items oi
+    		ON o.id = oi.order_id
+    ORDER BY
+      o.order_number,
+      oi.quantity
     """,
     []
   )
@@ -1233,9 +1233,9 @@ projection_version =
   Postgrex.query!(
     conn,
     """
-    select 
+    select
     		projection_name,
-    		last_seen_event_number 
+    		last_seen_event_number
     	from projection_versions
     	where projection_name = 'orders'
     """,
@@ -1282,14 +1282,14 @@ result11 =
   Postgrex.query!(
     conn,
     """
-    SELECT 
+    SELECT
       --e.event_id::text,
       event_type,
       data
     FROM events e
       JOIN stream_events se
         ON e.event_id = se.event_id
-    WHERE 
+    WHERE
     	se.stream_id  = 0
     	AND se.stream_version = $1
 
@@ -1471,7 +1471,7 @@ result12 =
     	s.source_type,
       s.metadata,
     	s.data
-    from snapshots s 
+    from snapshots s
     """,
     []
   )

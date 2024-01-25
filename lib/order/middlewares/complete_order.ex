@@ -1,9 +1,9 @@
-alias EsCqrsAnatomy.CommandEnrichment
+alias EsCqrsAnatomy.Middleware.Enrichment
 alias EsCqrsAnatomy.Order.Commands.CompleteOrder
 alias EsCqrsAnatomy.Order.Constants
 alias EsCqrsAnatomy.Order.Projections.OrderItem
 
-defimpl CommandEnrichment, for: CompleteOrder do
+defimpl Enrichment, for: CompleteOrder do
   @doc """
   Enrich command during dispatch, but before aggregate handling.
   """

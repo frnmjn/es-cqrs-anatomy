@@ -16,7 +16,7 @@ config :commanded_uniqueness_middleware,
 
 config :vex,
   sources: [
-    EsCqrsAnatomy.Support.Validators,
+    EsCqrsAnatomy.Validators,
     Vex.Validators
   ]
 
