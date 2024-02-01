@@ -38,7 +38,7 @@ services:
     volumes:
       - ./es-cqrs-anatomy.livemd:/data/es-cqrs-anatomy.livemd
     depends_on:
-      - es-cqrs-anatomy
+      - escqrsanatomy
 
 networks:
   es-cqrs-anatomy-network:

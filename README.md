@@ -1,14 +1,27 @@
 # EsCqrsAnatomy
 
-To start your Commanded application:
+## Build the image 
 
-  * Install dependencies with `mix deps.get`
-  * Create an event store database `mix do event_store.create, event_store.init`
-  * Start IEx with `iex -S mix run`
+``` docker build --no-cache -t escqrsanatomy . ```
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/commanded/deployment.html).
+## Start the compose
 
-## Learn more
+``` docker compose up -d```
 
-  * Docs: https://hexdocs.pm/commanded
-  * Source: https://github.com/commanded/commanded
+## Open the livebook
+
+1. go to ```http://localhost:8080/``` 
+
+2. Insert the password: ```es-cqrs-anatomy```
+
+3. Open the livebook
+
+![Alt text](image.png)
+
+![Alt text](image-1.png)
+
+4. Run the setup
+
+![Alt text](image-2.png)
+
+Enjoy!

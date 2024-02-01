@@ -376,7 +376,7 @@ Middlewares are component used to perform the follow tasks:
 
 **Note! This time we've added some Middlewares before to reach the Aggregate**
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TdXBwb3J0Lk1pZGRsZXdhcmVzLntWYWxpZGF0ZSwgRW5yaWNofVxuICBhbGlhcyBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyfVxuXG4gIG1pZGRsZXdhcmUoRW5yaWNoKVxuICBtaWRkbGV3YXJlKFZhbGlkYXRlKVxuICBtaWRkbGV3YXJlKFVuaXF1ZW5lc3MpXG5cbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG5cbiAgZGlzcGF0Y2goW0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyXSwgdG86IE9yZGVyKVxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5NaWRkbGV3YXJlLntWYWxpZGF0ZSwgRW5yaWNobWVudH1cbiAgYWxpYXMgQ29tbWFuZGVkLk1pZGRsZXdhcmUuVW5pcXVlbmVzc1xuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkFnZ3JlZ2F0ZS5PcmRlclxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cblxuICBtaWRkbGV3YXJlKEVucmljaG1lbnQpXG4gIG1pZGRsZXdhcmUoVmFsaWRhdGUpXG4gIG1pZGRsZXdhcmUoVW5pcXVlbmVzcylcblxuICBpZGVudGlmeShPcmRlciwgYnk6IDppZClcblxuICBkaXNwYXRjaChbQ3JlYXRlT3JkZXIsIENvbXBsZXRlT3JkZXJdLCB0bzogT3JkZXIpXG5lbmQiLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -389,12 +389,12 @@ Kino.RPC.eval_string(
   defmodule EsCqrsAnatomy.Router do
     use Commanded.Commands.Router
 
-    alias EsCqrsAnatomy.Support.Middlewares.{Validate, Enrich}
+    alias EsCqrsAnatomy.Middleware.{Validate, Enrichment}
     alias Commanded.Middleware.Uniqueness
     alias EsCqrsAnatomy.Order.Aggregate.Order
     alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
 
-    middleware(Enrich)
+    middleware(Enrichment)
     middleware(Validate)
     middleware(Uniqueness)
 
@@ -469,7 +469,7 @@ Kino.RPC.eval_string(
 
 We can validate standard format like String, Number ecc or create custom validator. In this example we have two custom validator for UUID and Email
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuU3VwcG9ydC5WYWxpZGF0b3JzLkVtYWlsIGRvXG4gIHVzZSBWZXguVmFsaWRhdG9yXG5cbiAgZGVmIHZhbGlkYXRlKHZhbHVlLCBfb3B0aW9ucykgd2hlbiBpc19iaW5hcnkodmFsdWUpIGRvXG4gICAgaWYgU3RyaW5nLm1hdGNoPyh2YWx1ZSwgcmVnZXhwKCkpIGRvXG4gICAgICA6b2tcbiAgICBlbHNlXG4gICAgICB7OmVycm9yLCBcIm11c3QgYmUgYSB2YWxpZCBlbWFpbFwifVxuICAgIGVuZFxuICBlbmRcblxuICBkZWYgdmFsaWRhdGUoXywgX29wdGlvbnMpLCBkbzogezplcnJvciwgXCJtdXN0IGJlIGEgdmFsaWQgZW1haWxcIn1cblxuICBkZWZwIHJlZ2V4cCgpLFxuICAgIGRvOiB+ci9eW19BLVphLXowLTktXFwrXSsoXFwuW19BLVphLXowLTktXSspKkBbQS1aYS16MC05LV0rKFxcLltBLVphLXowLTldKykqKFxcLltBLVphLXpdezIsfSkkL1xuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuVmFsaWRhdG9yLkVtYWlsIGRvXG4gIHVzZSBWZXguVmFsaWRhdG9yXG5cbiAgZGVmIHZhbGlkYXRlKHZhbHVlLCBfb3B0aW9ucykgd2hlbiBpc19iaW5hcnkodmFsdWUpIGRvXG4gICAgaWYgU3RyaW5nLm1hdGNoPyh2YWx1ZSwgcmVnZXhwKCkpIGRvXG4gICAgICA6b2tcbiAgICBlbHNlXG4gICAgICB7OmVycm9yLCBcIm11c3QgYmUgYSB2YWxpZCBlbWFpbFwifVxuICAgIGVuZFxuICBlbmRcblxuICBkZWYgdmFsaWRhdGUoXywgX29wdGlvbnMpLCBkbzogezplcnJvciwgXCJtdXN0IGJlIGEgdmFsaWQgZW1haWxcIn1cblxuICBkZWZwIHJlZ2V4cCgpLFxuICAgIGRvOiB+ci9eW19BLVphLXowLTktXFwrXSsoXFwuW19BLVphLXowLTktXSspKkBbQS1aYS16MC05LV0rKFxcLltBLVphLXowLTldKykqKFxcLltBLVphLXpdezIsfSkkL1xuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -479,7 +479,7 @@ Node.set_cookie(node, String.to_atom(System.fetch_env!("LB_COOKIE")))
 Kino.RPC.eval_string(
   node,
   ~S"""
-  defmodule EsCqrsAnatomy.Support.Validators.Email do
+  defmodule EsCqrsAnatomy.Validator.Email do
     use Vex.Validator
 
     def validate(value, _options) when is_binary(value) do
@@ -606,7 +606,7 @@ already_existing_order_number =
 
 #### Command Enrichment
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ29tcGxldGVPcmRlciBkb1xuICB1c2UgVHlwZWRTdHJ1Y3RcbiAgdXNlIFZleC5TdHJ1Y3RcblxuICBAZGVyaXZlIEphc29uLkVuY29kZXJcbiAgdHlwZWRzdHJ1Y3QgZW5mb3JjZTogdHJ1ZSBkb1xuICAgIGZpZWxkKDppZCwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6YmxvY2tlZF9wcm9kdWN0X2lkcywgbGlzdChTdHJpbmcudCgpKSwgZW5mb3JjZTogZmFsc2UpXG4gIGVuZFxuXG4gIHZhbGlkYXRlcyg6aWQsIHByZXNlbmNlOiB0cnVlLCB1dWlkOiB0cnVlKVxuZW5kXG5cblxuYWxpYXMgRXNDcXJzQW5hdG9teS5Db21tYW5kRW5yaWNobWVudFxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db21tYW5kcy5Db21wbGV0ZU9yZGVyXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVySXRlbVxuYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5Db25zdGFudHNcblxuZGVmaW1wbCBDb21tYW5kRW5yaWNobWVudCwgZm9yOiBDb21wbGV0ZU9yZGVyIGRvXG4gIFxuICBkZWYgZW5yaWNoKCVDb21wbGV0ZU9yZGVye30gPSBjb21tYW5kKSBkb1xuICAgICVDb21wbGV0ZU9yZGVye2lkOiBpZH0gPSBjb21tYW5kXG5cbiAgICBwcm9kdWN0c19pbl9vcmRlciA9IE9yZGVySXRlbS5wcm9kdWN0c19pbl9vcmRlcihpZClcblxuICAgIGNvbW1hbmQgPSAlQ29tcGxldGVPcmRlcntcbiAgICAgIGNvbW1hbmRcbiAgICAgIHwgYmxvY2tlZF9wcm9kdWN0X2lkczogbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpXG4gICAgfVxuICAgIFxuICAgIHs6b2ssIGNvbW1hbmR9XG4gIGVuZFxuXG4gIGRlZnAgbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpIGRvXG4gICAgY2FzZSBFbnVtLm1lbWJlcj8ocHJvZHVjdHNfaW5fb3JkZXIsIENvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKSkgZG9cbiAgICAgIHRydWUgLT4gW0NvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKV1cbiAgICAgIF8gLT4gW11cbiAgICBlbmRcbiAgZW5kXG5lbmRcbiIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMuQ29tcGxldGVPcmRlciBkb1xuICB1c2UgVHlwZWRTdHJ1Y3RcbiAgdXNlIFZleC5TdHJ1Y3RcblxuICBAZGVyaXZlIEphc29uLkVuY29kZXJcbiAgdHlwZWRzdHJ1Y3QgZW5mb3JjZTogdHJ1ZSBkb1xuICAgIGZpZWxkKDppZCwgU3RyaW5nLnQoKSlcbiAgICBmaWVsZCg6YmxvY2tlZF9wcm9kdWN0X2lkcywgbGlzdChTdHJpbmcudCgpKSwgZW5mb3JjZTogZmFsc2UpXG4gIGVuZFxuXG4gIHZhbGlkYXRlcyg6aWQsIHByZXNlbmNlOiB0cnVlLCB1dWlkOiB0cnVlKVxuZW5kXG5cblxuYWxpYXMgRXNDcXJzQW5hdG9teS5NaWRkbGV3YXJlLkVucmljaG1lbnQuRW5yaWNobWVudFByb3RvY29sXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLkNvbXBsZXRlT3JkZXJcbmFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29uc3RhbnRzXG5hbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLlByb2plY3Rpb25zLk9yZGVySXRlbVxuXG5kZWZpbXBsIEVucmljaG1lbnRQcm90b2NvbCwgZm9yOiBDb21wbGV0ZU9yZGVyIGRvXG4gIFxuICBkZWYgZW5yaWNoKCVDb21wbGV0ZU9yZGVye30gPSBjb21tYW5kKSBkb1xuICAgICVDb21wbGV0ZU9yZGVye2lkOiBpZH0gPSBjb21tYW5kXG5cbiAgICBwcm9kdWN0c19pbl9vcmRlciA9IE9yZGVySXRlbS5wcm9kdWN0c19pbl9vcmRlcihpZClcblxuICAgIGNvbW1hbmQgPSAlQ29tcGxldGVPcmRlcntcbiAgICAgIGNvbW1hbmRcbiAgICAgIHwgYmxvY2tlZF9wcm9kdWN0X2lkczogbG9va3VwX2V4dGVybmFsX2RhdGEocHJvZHVjdHNfaW5fb3JkZXIpXG4gICAgfVxuXG4gICAgezpvaywgY29tbWFuZH1cbiAgZW5kXG5cbiAgZGVmcCBsb29rdXBfZXh0ZXJuYWxfZGF0YShwcm9kdWN0c19pbl9vcmRlcikgZG9cbiAgICBpZiBFbnVtLm1lbWJlcj8ocHJvZHVjdHNfaW5fb3JkZXIsIENvbnN0YW50cy5ibG9ja2VkX3Byb2R1Y3RfaWQoKSkgZG9cbiAgICAgIFtDb25zdGFudHMuYmxvY2tlZF9wcm9kdWN0X2lkKCldXG4gICAgZWxzZVxuICAgICAgW11cbiAgICBlbmRcbiAgZW5kXG5lbmRcblxuIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -630,12 +630,12 @@ Kino.RPC.eval_string(
   end
 
 
-  alias EsCqrsAnatomy.CommandEnrichment
+  alias EsCqrsAnatomy.Middleware.Enrichment.EnrichmentProtocol
   alias EsCqrsAnatomy.Order.Commands.CompleteOrder
-  alias EsCqrsAnatomy.Order.Projections.OrderItem
   alias EsCqrsAnatomy.Order.Constants
+  alias EsCqrsAnatomy.Order.Projections.OrderItem
 
-  defimpl CommandEnrichment, for: CompleteOrder do
+  defimpl EnrichmentProtocol, for: CompleteOrder do
     
     def enrich(%CompleteOrder{} = command) do
       %CompleteOrder{id: id} = command
@@ -646,17 +646,19 @@ Kino.RPC.eval_string(
         command
         | blocked_product_ids: lookup_external_data(products_in_order)
       }
-      
+
       {:ok, command}
     end
 
     defp lookup_external_data(products_in_order) do
-      case Enum.member?(products_in_order, Constants.blocked_product_id()) do
-        true -> [Constants.blocked_product_id()]
-        _ -> []
+      if Enum.member?(products_in_order, Constants.blocked_product_id()) do
+        [Constants.blocked_product_id()]
+      else
+        []
       end
     end
   end
+
 
   """,
   file: __ENV__.file
@@ -801,7 +803,7 @@ Kino.RPC.eval_string(
 
 ![images](https://raw.githubusercontent.com/frnmjn/es-cqrs-anatomy/main/img/es-policy.png)
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TdXBwb3J0Lk1pZGRsZXdhcmVzLntWYWxpZGF0ZSwgRW5yaWNofVxuICBhbGlhcyBDb21tYW5kZWQuTWlkZGxld2FyZS5VbmlxdWVuZXNzXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQ29tbWFuZHMue0NyZWF0ZU9yZGVyLCBDb21wbGV0ZU9yZGVyfVxuICBhbGlhcyBFc0NxcnNBbmF0b215LlNoaXBtZW50LkFnZ3JlZ2F0ZS5TaGlwbWVudFxuICBhbGlhcyBFc0NxcnNBbmF0b215LlNoaXBtZW50LkNvbW1hbmRzLntDcmVhdGVTaGlwbWVudCwgQ29tcGxldGVTaGlwbWVudH1cblxuICBtaWRkbGV3YXJlKEVucmljaClcbiAgbWlkZGxld2FyZShWYWxpZGF0ZSlcbiAgbWlkZGxld2FyZShVbmlxdWVuZXNzKVxuXG4gIGlkZW50aWZ5KE9yZGVyLCBieTogOmlkKVxuICBpZGVudGlmeShTaGlwbWVudCwgYnk6IDppZClcblxuICBkaXNwYXRjaChbQ3JlYXRlT3JkZXIsIENvbXBsZXRlT3JkZXJdLCB0bzogT3JkZXIpXG4gIGRpc3BhdGNoKFtDcmVhdGVTaGlwbWVudCwgQ29tcGxldGVTaGlwbWVudF0sIHRvOiBTaGlwbWVudClcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuUm91dGVyIGRvXG4gIHVzZSBDb21tYW5kZWQuQ29tbWFuZHMuUm91dGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5NaWRkbGV3YXJlLntWYWxpZGF0ZSwgRW5yaWNobWVudH1cbiAgYWxpYXMgQ29tbWFuZGVkLk1pZGRsZXdhcmUuVW5pcXVlbmVzc1xuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkFnZ3JlZ2F0ZS5PcmRlclxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkNvbW1hbmRzLntDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcn1cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TaGlwbWVudC5BZ2dyZWdhdGUuU2hpcG1lbnRcbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5TaGlwbWVudC5Db21tYW5kcy57Q3JlYXRlU2hpcG1lbnQsIENvbXBsZXRlU2hpcG1lbnR9XG5cbiAgbWlkZGxld2FyZShFbnJpY2htZW50KVxuICBtaWRkbGV3YXJlKFZhbGlkYXRlKVxuICBtaWRkbGV3YXJlKFVuaXF1ZW5lc3MpXG5cbiAgaWRlbnRpZnkoT3JkZXIsIGJ5OiA6aWQpXG4gIGlkZW50aWZ5KFNoaXBtZW50LCBieTogOmlkKVxuXG4gIGRpc3BhdGNoKFtDcmVhdGVPcmRlciwgQ29tcGxldGVPcmRlcl0sIHRvOiBPcmRlcilcbiAgZGlzcGF0Y2goW0NyZWF0ZVNoaXBtZW50LCBDb21wbGV0ZVNoaXBtZW50XSwgdG86IFNoaXBtZW50KVxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -814,14 +816,14 @@ Kino.RPC.eval_string(
   defmodule EsCqrsAnatomy.Router do
     use Commanded.Commands.Router
 
-    alias EsCqrsAnatomy.Support.Middlewares.{Validate, Enrich}
+    alias EsCqrsAnatomy.Middleware.{Validate, Enrichment}
     alias Commanded.Middleware.Uniqueness
     alias EsCqrsAnatomy.Order.Aggregate.Order
     alias EsCqrsAnatomy.Order.Commands.{CreateOrder, CompleteOrder}
     alias EsCqrsAnatomy.Shipment.Aggregate.Shipment
     alias EsCqrsAnatomy.Shipment.Commands.{CreateShipment, CompleteShipment}
 
-    middleware(Enrich)
+    middleware(Enrichment)
     middleware(Validate)
     middleware(Uniqueness)
 
@@ -836,7 +838,7 @@ Kino.RPC.eval_string(
 )
 ```
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuU2hpcG1lbnQuUG9saWNpZXMuU2hpcG1lbnQgZG9cbiAgdXNlIENvbW1hbmRlZC5FdmVudC5IYW5kbGVyLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICBuYW1lOiBcInNoaXBtZW50XCIsXG4gICAgc3RhcnRfZnJvbTogOmN1cnJlbnRcbiAgICBcblxuICByZXF1aXJlIExvZ2dlclxuXG4gIGFsaWFzIENvbW1hbmRlZC5FdmVudC5GYWlsdXJlQ29udGV4dFxuICBhbGlhcyBFc0NxcnNBbmF0b215Lk9yZGVyLkV2ZW50cy5PcmRlckNvbXBsZXRlZFxuICBhbGlhcyBFc0NxcnNBbmF0b215LlNoaXBtZW50LkNvbW1hbmRzLkNyZWF0ZVNoaXBtZW50XG5cbiAgZGVmIGhhbmRsZSglT3JkZXJDb21wbGV0ZWR7aWQ6IGlkfSwgJXtcbiAgICAgICAgZXZlbnRfaWQ6IGNhdXNhdGlvbl9pZCxcbiAgICAgICAgY29ycmVsYXRpb25faWQ6IGNvcnJlbGF0aW9uX2lkXG4gICAgICB9KSBkb1xuICAgICVDcmVhdGVTaGlwbWVudHtcbiAgICAgIGlkOiBVVUlELnV1aWQ0KCksXG4gICAgICBvcmRlcl9pZDogaWRcbiAgICB9XG4gICAgfD4gRXNDcXJzQW5hdG9teS5BcHAuZGlzcGF0Y2goY2F1c2F0aW9uX2lkOiBjYXVzYXRpb25faWQsIGNvcnJlbGF0aW9uX2lkOiBjb3JyZWxhdGlvbl9pZClcbiAgZW5kXG5cbiAgZGVmIGVycm9yKHs6ZXJyb3IsIHJlYXNvbn0sIGV2ZW50LCAlRmFpbHVyZUNvbnRleHR7Y29udGV4dDogY29udGV4dH0pIGRvXG4gICAgY29udGV4dCA9IHJlY29yZF9mYWlsdXJlKGNvbnRleHQpXG5cbiAgICBjYXNlIE1hcC5nZXQoY29udGV4dCwgOmZhaWx1cmVzKSBkb1xuICAgICAgdG9vX21hbnkgd2hlbiB0b29fbWFueSA+PSAzIC0+XG4gICAgICAgICMgc2tpcCBiYWQgZXZlbnQgYWZ0ZXIgdGhpcmQgZmFpbHVyZVxuICAgICAgICBMb2dnZXIuZXJyb3IoXG4gICAgICAgICAgXCIje19fTU9EVUxFX199IFNraXBwaW5nIGJhZCBldmVudCwgdG9vIG1hbnkgZmFpbHVyZXM6ICN7aW5zcGVjdChldmVudCl9IGZvciByZWFzb246ICN7aW5zcGVjdChyZWFzb24pfVwiXG4gICAgICAgIClcblxuICAgICAgICA6c2tpcFxuXG4gICAgICBfIC0+XG4gICAgICAgICMgcmV0cnkgZXZlbnQsIGZhaWx1cmUgY291bnQgaXMgaW5jbHVkZWQgaW4gY29udGV4dCBtYXBcbiAgICAgICAgezpyZXRyeSwgY29udGV4dH1cbiAgICBlbmRcbiAgZW5kXG5cbiAgZGVmcCByZWNvcmRfZmFpbHVyZShjb250ZXh0KSBkb1xuICAgIE1hcC51cGRhdGUoY29udGV4dCwgOmZhaWx1cmVzLCAxLCBmbiBmYWlsdXJlcyAtPiBmYWlsdXJlcyArIDEgZW5kKVxuICBlbmRcbmVuZCIsImNvb2tpZSI6IiIsImNvb2tpZV9zZWNyZXQiOiJDT09LSUUiLCJub2RlIjoiZXNjcXJzYW5hdG9teUBlc2NxcnNhbmF0b215Iiwibm9kZV9zZWNyZXQiOiIiLCJub2RlX3NlY3JldF92YWx1ZSI6bnVsbCwidXNlX2Nvb2tpZV9zZWNyZXQiOnRydWUsInVzZV9ub2RlX3NlY3JldCI6ZmFsc2V9","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuU2hpcG1lbnQuUG9saWNpZXMuU2hpcG1lbnQgZG9cbiAgdXNlIENvbW1hbmRlZC5FdmVudC5IYW5kbGVyLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICBuYW1lOiBcInNoaXBtZW50XCIsXG4gICAgc3RhcnRfZnJvbTogOmN1cnJlbnRcbiAgICBcbiAgdXNlIEVzQ3Fyc0FuYXRvbXkuQmFzZS5FdmVudEhhbmRsZXJcbiAgXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuRXZlbnRzLk9yZGVyQ29tcGxldGVkXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuU2hpcG1lbnQuQ29tbWFuZHMuQ3JlYXRlU2hpcG1lbnRcblxuICBkZWYgaGFuZGxlKCVPcmRlckNvbXBsZXRlZHtpZDogaWR9LCAle1xuICAgICAgICBldmVudF9pZDogY2F1c2F0aW9uX2lkLFxuICAgICAgICBjb3JyZWxhdGlvbl9pZDogY29ycmVsYXRpb25faWRcbiAgICAgIH0pIGRvXG4gICAgJUNyZWF0ZVNoaXBtZW50e1xuICAgICAgaWQ6IFVVSUQudXVpZDQoKSxcbiAgICAgIG9yZGVyX2lkOiBpZFxuICAgIH1cbiAgICB8PiBFc0NxcnNBbmF0b215LkFwcC5kaXNwYXRjaChjYXVzYXRpb25faWQ6IGNhdXNhdGlvbl9pZCwgY29ycmVsYXRpb25faWQ6IGNvcnJlbGF0aW9uX2lkKVxuICBlbmRcblxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -852,10 +854,8 @@ Kino.RPC.eval_string(
       name: "shipment",
       start_from: :current
       
-
-    require Logger
-
-    alias Commanded.Event.FailureContext
+    use EsCqrsAnatomy.Base.EventHandler
+    
     alias EsCqrsAnatomy.Order.Events.OrderCompleted
     alias EsCqrsAnatomy.Shipment.Commands.CreateShipment
 
@@ -870,27 +870,6 @@ Kino.RPC.eval_string(
       |> EsCqrsAnatomy.App.dispatch(causation_id: causation_id, correlation_id: correlation_id)
     end
 
-    def error({:error, reason}, event, %FailureContext{context: context}) do
-      context = record_failure(context)
-
-      case Map.get(context, :failures) do
-        too_many when too_many >= 3 ->
-          # skip bad event after third failure
-          Logger.error(
-            "#{__MODULE__} Skipping bad event, too many failures: #{inspect(event)} for reason: #{inspect(reason)}"
-          )
-
-          :skip
-
-        _ ->
-          # retry event, failure count is included in context map
-          {:retry, context}
-      end
-    end
-
-    defp record_failure(context) do
-      Map.update(context, :failures, 1, fn failures -> failures + 1 end)
-    end
   end
   """,
   file: __ENV__.file
@@ -1024,7 +1003,7 @@ result6 =
   )
 ```
 
-<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0NyIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgc3RyZWFtX2lkLFxuICBzdHJlYW1fdXVpZCxcbiAgc3RyZWFtX3ZlcnNpb24gXG5GUk9NIHN0cmVhbXMgXG5PUkRFUiBCWSBzdHJlYW1faWQgQVNDIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0NyIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 result7 =
@@ -1036,6 +1015,7 @@ result7 =
       stream_uuid,
       stream_version 
     FROM streams 
+    ORDER BY stream_id ASC
     """,
     []
   )
@@ -1069,7 +1049,7 @@ result8 =
 
 ### Projector
 
-<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuUHJvamVjdG9ycy5PcmRlcnMgZG9cbiAgdXNlIENvbW1hbmRlZC5Qcm9qZWN0aW9ucy5FY3RvLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICByZXBvOiBFc0NxcnNBbmF0b215LlJlcG8sXG4gICAgbmFtZTogXCJvcmRlcnNcIlxuXG4gIHJlcXVpcmUgTG9nZ2VyXG5cbiAgYWxpYXMgQ29tbWFuZGVkLkV2ZW50LkZhaWx1cmVDb250ZXh0XG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5FdmVudHMue1xuICAgIE9yZGVyQ3JlYXRlZCxcbiAgICBPcmRlckNvbXBsZXRlZCxcbiAgICBPcmRlckRlbGV0ZWRcbiAgfVxuXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuUHJvamVjdGlvbnMue09yZGVyLCBPcmRlckl0ZW19XG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyU3RhdHVzXG5cbiAgcHJvamVjdChcbiAgICAlT3JkZXJDcmVhdGVke30gPSBldmVudCxcbiAgICBfbWV0YWRhdGEsXG4gICAgZm4gbXVsdGkgLT5cbiAgICAgIG11bHRpXG4gICAgICB8PiBFY3RvLk11bHRpLmluc2VydChcbiAgICAgICAgOm9yZGVycyxcbiAgICAgICAgJU9yZGVye1xuICAgICAgICAgIGlkOiBldmVudC5pZCxcbiAgICAgICAgICBvcmRlcl9udW1iZXI6IGV2ZW50Lm9yZGVyX251bWJlcixcbiAgICAgICAgICBidXNpbmVzc19wYXJ0bmVyOiBldmVudC5idXNpbmVzc19wYXJ0bmVyLFxuICAgICAgICAgIHN0YXR1czogT3JkZXJTdGF0dXMub3BlbigpLFxuICAgICAgICAgIGl0ZW1zOlxuICAgICAgICAgICAgZXZlbnQuaXRlbXNcbiAgICAgICAgICAgIHw+IEVudW0ubWFwKFxuICAgICAgICAgICAgICAmJU9yZGVySXRlbXtcbiAgICAgICAgICAgICAgICBpZDogVVVJRC51dWlkNCgpLFxuICAgICAgICAgICAgICAgIG9yZGVyX2lkOiBldmVudC5pZCxcbiAgICAgICAgICAgICAgICBwcm9kdWN0X2lkOiAmMS5wcm9kdWN0X2lkLFxuICAgICAgICAgICAgICAgIHF1YW50aXR5OiAmMS5xdWFudGl0eSxcbiAgICAgICAgICAgICAgICB1b206ICYxLnVvbVxuICAgICAgICAgICAgICB9XG4gICAgICAgICAgICApXG4gICAgICAgIH1cbiAgICAgIClcbiAgICBlbmRcbiAgKVxuXG4gIHByb2plY3QoXG4gICAgJU9yZGVyQ29tcGxldGVke2lkOiBpZH0sXG4gICAgX21ldGFkYXRhLFxuICAgIGZuIG11bHRpIC0+XG4gICAgICBtdWx0aVxuICAgICAgfD4gRWN0by5NdWx0aS5ydW4oOm9yZGVyX3RvX3VwZGF0ZSwgZm4gcmVwbywgX2NoYW5nZXMgLT5cbiAgICAgICAgezpvaywgcmVwby5nZXQoT3JkZXIsIGlkKX1cbiAgICAgIGVuZClcbiAgICAgIHw+IEVjdG8uTXVsdGkudXBkYXRlKDpvcmRlciwgZm4gJXtvcmRlcl90b191cGRhdGU6IG9yZGVyfSAtPlxuICAgICAgICBFY3RvLkNoYW5nZXNldC5jaGFuZ2Uob3JkZXIsXG4gICAgICAgICAgc3RhdHVzOiBPcmRlclN0YXR1cy5jb21wbGV0ZWQoKVxuICAgICAgICApXG4gICAgICBlbmQpXG4gICAgZW5kXG4gIClcblxuICBwcm9qZWN0KFxuICAgICVPcmRlckRlbGV0ZWR7aWQ6IGlkfSxcbiAgICBfbWV0YWRhdGEsXG4gICAgZm4gbXVsdGkgLT5cbiAgICAgIG11bHRpXG4gICAgICB8PiBFY3RvLk11bHRpLnJ1big6b3JkZXJfdG9fZGVsZXRlLCBmbiByZXBvLCBfY2hhbmdlcyAtPlxuICAgICAgICB7cm93c19kZWxldGVkLCBffSA9IGZyb20obyBpbiBPcmRlciwgd2hlcmU6IG8uaWQgPT0gXmlkKSB8PiByZXBvLmRlbGV0ZV9hbGwoKVxuICAgICAgICB7Om9rLCByb3dzX2RlbGV0ZWR9XG4gICAgICBlbmQpXG4gICAgZW5kXG4gIClcblxuICBkZWYgZXJyb3IoezplcnJvciwgZXJyb3J9LCBldmVudCwgJUZhaWx1cmVDb250ZXh0e2NvbnRleHQ6IGNvbnRleHR9KSBkb1xuICAgIGNvbnRleHQgPSByZWNvcmRfZmFpbHVyZShjb250ZXh0KVxuXG4gICAgY2FzZSBNYXAuZ2V0KGNvbnRleHQsIDpmYWlsdXJlcykgZG9cbiAgICAgIHRvb19tYW55IHdoZW4gdG9vX21hbnkgPj0gMyAtPlxuICAgICAgICAjIHNraXAgYmFkIGV2ZW50IGFmdGVyIHRoaXJkIGZhaWx1cmVcbiAgICAgICAgTG9nZ2VyLmVycm9yKFxuICAgICAgICAgIFwiI3tfX01PRFVMRV9ffSBTa2lwcGluZyBiYWQgZXZlbnQsIHRvbyBtYW55IGZhaWx1cmVzOiAje2luc3BlY3QoZXZlbnQpfSBmb3IgcmVhc29uOiAje2luc3BlY3QoZXJyb3IpfVwiXG4gICAgICAgIClcblxuICAgICAgICA6c2tpcFxuXG4gICAgICBfIC0+XG4gICAgICAgICMgcmV0cnkgZXZlbnQsIGZhaWx1cmUgY291bnQgaXMgaW5jbHVkZWQgaW4gY29udGV4dCBtYXBcbiAgICAgICAgezpyZXRyeSwgY29udGV4dH1cbiAgICBlbmRcblxuICAgIDpza2lwXG4gIGVuZFxuXG4gIGRlZnAgcmVjb3JkX2ZhaWx1cmUoY29udGV4dCkgZG9cbiAgICBQcm9jZXNzLnNsZWVwKDEwMDApXG4gICAgTWFwLnVwZGF0ZShjb250ZXh0LCA6ZmFpbHVyZXMsIDEsIGZuIGZhaWx1cmVzIC0+IGZhaWx1cmVzICsgMSBlbmQpXG4gIGVuZFxuZW5kXG4iLCJjb29raWUiOiIiLCJjb29raWVfc2VjcmV0IjoiQ09PS0lFIiwibm9kZSI6ImVzY3Fyc2FuYXRvbXlAZXNjcXJzYW5hdG9teSIsIm5vZGVfc2VjcmV0IjoiIiwibm9kZV9zZWNyZXRfdmFsdWUiOm51bGwsInVzZV9jb29raWVfc2VjcmV0Ijp0cnVlLCJ1c2Vfbm9kZV9zZWNyZXQiOmZhbHNlfQ","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJhc3NpZ25fdG8iOiIiLCJjb2RlIjoiZGVmbW9kdWxlIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuUHJvamVjdG9ycy5PcmRlcnMgZG9cbiAgdXNlIENvbW1hbmRlZC5Qcm9qZWN0aW9ucy5FY3RvLFxuICAgIGFwcGxpY2F0aW9uOiBFc0NxcnNBbmF0b215LkFwcCxcbiAgICByZXBvOiBFc0NxcnNBbmF0b215LlJlcG8sXG4gICAgbmFtZTogXCJvcmRlcnNcIlxuXG4gIHVzZSBFc0NxcnNBbmF0b215LkJhc2UuRXZlbnRIYW5kbGVyXG5cbiAgYWxpYXMgRXNDcXJzQW5hdG9teS5PcmRlci5FdmVudHMue1xuICAgIE9yZGVyQ3JlYXRlZCxcbiAgICBPcmRlckNvbXBsZXRlZCxcbiAgICBPcmRlckRlbGV0ZWRcbiAgfVxuXG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuUHJvamVjdGlvbnMue09yZGVyLCBPcmRlckl0ZW19XG4gIGFsaWFzIEVzQ3Fyc0FuYXRvbXkuT3JkZXIuQWdncmVnYXRlLk9yZGVyU3RhdHVzXG5cbiAgcHJvamVjdChcbiAgICAlT3JkZXJDcmVhdGVke30gPSBldmVudCxcbiAgICBfbWV0YWRhdGEsXG4gICAgZm4gbXVsdGkgLT5cbiAgICAgIG11bHRpXG4gICAgICB8PiBFY3RvLk11bHRpLmluc2VydChcbiAgICAgICAgOm9yZGVycyxcbiAgICAgICAgJU9yZGVye1xuICAgICAgICAgIGlkOiBldmVudC5pZCxcbiAgICAgICAgICBvcmRlcl9udW1iZXI6IGV2ZW50Lm9yZGVyX251bWJlcixcbiAgICAgICAgICBidXNpbmVzc19wYXJ0bmVyOiBldmVudC5idXNpbmVzc19wYXJ0bmVyLFxuICAgICAgICAgIHN0YXR1czogT3JkZXJTdGF0dXMub3BlbigpLFxuICAgICAgICAgIGl0ZW1zOlxuICAgICAgICAgICAgZXZlbnQuaXRlbXNcbiAgICAgICAgICAgIHw+IEVudW0ubWFwKFxuICAgICAgICAgICAgICAmJU9yZGVySXRlbXtcbiAgICAgICAgICAgICAgICBpZDogVVVJRC51dWlkNCgpLFxuICAgICAgICAgICAgICAgIG9yZGVyX2lkOiBldmVudC5pZCxcbiAgICAgICAgICAgICAgICBwcm9kdWN0X2lkOiAmMS5wcm9kdWN0X2lkLFxuICAgICAgICAgICAgICAgIHF1YW50aXR5OiAmMS5xdWFudGl0eSxcbiAgICAgICAgICAgICAgICB1b206ICYxLnVvbVxuICAgICAgICAgICAgICB9XG4gICAgICAgICAgICApXG4gICAgICAgIH1cbiAgICAgIClcbiAgICBlbmRcbiAgKVxuXG4gIHByb2plY3QoXG4gICAgJU9yZGVyQ29tcGxldGVke2lkOiBpZH0sXG4gICAgX21ldGFkYXRhLFxuICAgIGZuIG11bHRpIC0+XG4gICAgICBtdWx0aVxuICAgICAgfD4gRWN0by5NdWx0aS5ydW4oOm9yZGVyX3RvX3VwZGF0ZSwgZm4gcmVwbywgX2NoYW5nZXMgLT5cbiAgICAgICAgezpvaywgcmVwby5nZXQoT3JkZXIsIGlkKX1cbiAgICAgIGVuZClcbiAgICAgIHw+IEVjdG8uTXVsdGkudXBkYXRlKDpvcmRlciwgZm4gJXtvcmRlcl90b191cGRhdGU6IG9yZGVyfSAtPlxuICAgICAgICBFY3RvLkNoYW5nZXNldC5jaGFuZ2Uob3JkZXIsXG4gICAgICAgICAgc3RhdHVzOiBPcmRlclN0YXR1cy5jb21wbGV0ZWQoKVxuICAgICAgICApXG4gICAgICBlbmQpXG4gICAgZW5kXG4gIClcblxuICBwcm9qZWN0KFxuICAgICVPcmRlckRlbGV0ZWR7aWQ6IGlkfSxcbiAgICBfbWV0YWRhdGEsXG4gICAgZm4gbXVsdGkgLT5cbiAgICAgIG11bHRpXG4gICAgICB8PiBFY3RvLk11bHRpLnJ1big6b3JkZXJfdG9fZGVsZXRlLCBmbiByZXBvLCBfY2hhbmdlcyAtPlxuICAgICAgICB7cm93c19kZWxldGVkLCBffSA9IGZyb20obyBpbiBPcmRlciwgd2hlcmU6IG8uaWQgPT0gXmlkKSB8PiByZXBvLmRlbGV0ZV9hbGwoKVxuICAgICAgICB7Om9rLCByb3dzX2RlbGV0ZWR9XG4gICAgICBlbmQpXG4gICAgZW5kXG4gIClcblxuZW5kIiwiY29va2llIjoiIiwiY29va2llX3NlY3JldCI6IkNPT0tJRSIsIm5vZGUiOiJlc2NxcnNhbmF0b215QGVzY3Fyc2FuYXRvbXkiLCJub2RlX3NlY3JldCI6IiIsIm5vZGVfc2VjcmV0X3ZhbHVlIjpudWxsLCJ1c2VfY29va2llX3NlY3JldCI6dHJ1ZSwidXNlX25vZGVfc2VjcmV0IjpmYWxzZX0","chunks":null,"kind":"Elixir.Kino.RemoteExecutionCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 require Kino.RPC
@@ -1085,9 +1065,7 @@ Kino.RPC.eval_string(
       repo: EsCqrsAnatomy.Repo,
       name: "orders"
 
-    require Logger
-
-    alias Commanded.Event.FailureContext
+    use EsCqrsAnatomy.Base.EventHandler
 
     alias EsCqrsAnatomy.Order.Events.{
       OrderCreated,
@@ -1154,32 +1132,7 @@ Kino.RPC.eval_string(
       end
     )
 
-    def error({:error, error}, event, %FailureContext{context: context}) do
-      context = record_failure(context)
-
-      case Map.get(context, :failures) do
-        too_many when too_many >= 3 ->
-          # skip bad event after third failure
-          Logger.error(
-            "#{__MODULE__} Skipping bad event, too many failures: #{inspect(event)} for reason: #{inspect(error)}"
-          )
-
-          :skip
-
-        _ ->
-          # retry event, failure count is included in context map
-          {:retry, context}
-      end
-
-      :skip
-    end
-
-    defp record_failure(context) do
-      Process.sleep(1000)
-      Map.update(context, :failures, 1, fn failures -> failures + 1 end)
-    end
   end
-
   """,
   file: __ENV__.file
 )
@@ -1275,7 +1228,7 @@ opts = [
 {:ok, conn} = Kino.start_child({Postgrex, opts})
 ```
 
-<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgLS1lLmV2ZW50X2lkOjp0ZXh0LFxuICBldmVudF90eXBlLFxuICBkYXRhXG5GUk9NIGV2ZW50cyBlXG4gIEpPSU4gc3RyZWFtX2V2ZW50cyBzZVxuICAgIE9OIGUuZXZlbnRfaWQgPSBzZS5ldmVudF9pZFxuV0hFUkUgXG5cdHNlLnN0cmVhbV9pZCAgPSAwXG5cdEFORCBzZS5zdHJlYW1fdmVyc2lvbiA9IHt7bGFzdF9zZWVuX2V2ZW50X251bWJlcn19XG4iLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQxMSIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVCBcbiAgZXZlbnRfdHlwZSxcbiAgZGF0YVxuRlJPTSBldmVudHMgZVxuICBKT0lOIHN0cmVhbV9ldmVudHMgc2VcbiAgICBPTiBlLmV2ZW50X2lkID0gc2UuZXZlbnRfaWRcbldIRVJFIFxuXHRzZS5zdHJlYW1faWQgID0gMFxuXHRBTkQgc2Uuc3RyZWFtX3ZlcnNpb24gPSB7e2xhc3Rfc2Vlbl9ldmVudF9udW1iZXJ9fVxuIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0MTEiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 result11 =
@@ -1283,7 +1236,6 @@ result11 =
     conn,
     """
     SELECT 
-      --e.event_id::text,
       event_type,
       data
     FROM events e
@@ -1458,20 +1410,19 @@ config :es_cqrs_anatomy, EsCqrsAnatomy.App,
   }
 ```
 
-<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6InNlbGVjdFxuICAtLXMuc291cmNlX3V1aWQsXG5cdHMuc291cmNlX3ZlcnNpb24sXG5cdHMuc291cmNlX3R5cGUsXG4gIHMubWV0YWRhdGEsXG5cdHMuZGF0YVxuZnJvbSBzbmFwc2hvdHMgcyAiLCJyZXN1bHRfdmFyaWFibGUiOiJyZXN1bHQxMiIsInRpbWVvdXQiOm51bGx9","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":"eyJjYWNoZV9xdWVyeSI6dHJ1ZSwiY29ubmVjdGlvbiI6eyJ0eXBlIjoicG9zdGdyZXMiLCJ2YXJpYWJsZSI6ImNvbm4ifSwiZGF0YV9mcmFtZV9hbGlhcyI6IkVsaXhpci5FeHBsb3Jlci5EYXRhRnJhbWUiLCJxdWVyeSI6IlNFTEVDVFxuXHRzLnNvdXJjZV92ZXJzaW9uLFxuXHRzLnNvdXJjZV90eXBlLFxuICBzLm1ldGFkYXRhLFxuXHRzLmRhdGFcbkZST00gc25hcHNob3RzIHMgIiwicmVzdWx0X3ZhcmlhYmxlIjoicmVzdWx0MTIiLCJ0aW1lb3V0IjpudWxsfQ","chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
 
 ```elixir
 result12 =
   Postgrex.query!(
     conn,
     """
-    select
-      --s.source_uuid,
+    SELECT
     	s.source_version,
     	s.source_type,
       s.metadata,
     	s.data
-    from snapshots s 
+    FROM snapshots s 
     """,
     []
   )
