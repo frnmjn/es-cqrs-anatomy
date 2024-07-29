@@ -22,8 +22,7 @@ defmodule EsCqrsAnatomy.MixProject do
   def application do
     [
       mod: {EsCqrsAnatomy.Application, []},
-      # extra_applications: [:logger, :runtime_tools]
-      extra_applications: [:logger, :wx, :observer, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -71,7 +70,7 @@ defmodule EsCqrsAnatomy.MixProject do
 
   defp releases do
     [
-      es_cqrs_anatomy: [
+      escqrsanatomy: [
         version: version(),
         applications: [
           es_cqrs_anatomy: :permanent
