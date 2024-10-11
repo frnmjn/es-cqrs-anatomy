@@ -33,5 +33,6 @@ services:
       - LIVEBOOK_PASSWORD=es-cqrs-anatomy
     volumes:
       - ./es-cqrs-anatomy.livemd:/data/es-cqrs-anatomy.livemd
+      - ./short-es-cqrs-anatomy.livemd:/data/short-es-cqrs-anatomy.livemd
     depends_on:
       - es-cqrs-anatomy
